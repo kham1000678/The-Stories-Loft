@@ -1,0 +1,99 @@
+/* General page */
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333333;
+}
+
+
+/* Header */
+
+header {
+    background-color: #222222;
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+
+/* Navigation */
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+
+/* Home section */
+
+#home {
+    text-align: center;
+    padding: 100px 20px;
+    background-color: white;
+}
+
+#home h2 {
+    font-size: 45px;
+    margin-bottom: 20px;
+}
+
+#home p {
+    font-size: 20px;
+    margin-bottom: 30px;
+}
+
+
+/* Button */
+
+button {
+    background-color: #222222;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #444444;
+}
+
+
+/* About and Contact */
+
+section {
+    padding: 70px 20px;
+    text-align: center;
+}
+
+#about {
+    background-color: #eeeeee;
+}
+
+#contact {
+    background-color: white;
+}
+
+
+/* Footer */
+
+footer {
+    background-color: #222222;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
