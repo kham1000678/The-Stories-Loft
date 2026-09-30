@@ -1,0 +1,2 @@
+<button class="btn btn-ghost" style="width:100%;margin-top:10px;border:1px solid #ddd" onclick="exportJSON()">⬇️ Export stories.json for GitHub</button>
+<script>function exportJSON(){const data=localStorage.getItem('loft_stories');const blob=new Blob([data],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='stories.json';a.click();}</script>

@@ -3,54 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="google-site-verification" content="3kz8NgRYiAylAAL5FXenGO7uc1FtCqf8ioonQMUL3tE" />
-<title>The Stories Loft - A Cozy Corner for Stories</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<meta name="google-site-verification" content="3kz8NgRYiAylAAL5FXenGO7uc1FtCqf8ioonQMUL3tE" />
+<meta name="description" content="The Stories Loft - A cozy, curated home for love, mystery & life stories. Built in Darrang, Assam.">
+<meta property="og:title" content="The Stories Loft">
+<meta property="og:description" content="Where stories find a home.">
+<meta property="og:type" content="website">
+<title>The Stories Loft - Where stories find a home</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
 </head>
 <body>
 <header>
-  <nav> 
-    <div class="logo"> The Stories Loft</div>
-    <div class="links">
-      <a href="#">Home</a>
-      <a href="#">Stories</a>
-      <a href="#">About</a>
-    </div>
-  </nav>
-  <div class="hero">
-    <h1>Where stories find a home.</h1>
-    <p>A quiet loft above the noise — for love, loss, mystery and everything in between.</p>
-    <a href="#stories" class="btn">Explore Stories</a>
+<nav class="navbar">
+  <div class="logo">The Stories Loft</div>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html" class="active">Home</a>
+    <a href="#stories">Stories</a>
+    <a href="#about">About</a>
+    <a href="admin.html" class="admin-link">+ Write Story</a>
   </div>
+  <div class="mobile-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</div>
+</nav>
+<div class="hero">
+  <span class="eyebrow">CURATED • AD-FREE • ASSAM • 2026</span>
+  <h1>Where stories find a <em>home.</em></h1>
+  <p>A quiet loft above the noise — for love, loss, mystery and everything in between. No algorithm. Just stories that stay.</p>
+  <div class="hero-actions">
+    <a href="#stories" class="btn btn-primary">Explore Stories</a>
+    <a href="admin.html" class="btn btn-ghost">Start Writing</a>
+  </div>
+  <div class="hero-stats">
+    <div><strong id="totalStories">0</strong><span>Stories Published</span></div>
+    <div><strong>4.9/5</strong><span>Reader Love</span></div>
+    <div><strong>100%</strong><span>Handpicked</span></div>
+  </div>
+</div>
 </header>
 
-<main id="stories" class="container">
-  <h2>Latest from the Loft</h2>
-  <div class="grid">
-    <div class="card">
-      <span class="tag">Love</span>
-      <h3>The Letter That Never Came</h3>
-      <p>A story of waiting, rain, and a mailbox that stayed empty for years.</p>
-      <a href="#">Read →</a>
-    </div>
-    <div class="card">
-      <span class="tag">Mystery</span>
-      <h3>The Light in the Old Loft</h3>
-      <p>She heard footsteps every night from the loft. No one lived there.</p>
-      <a href="#">Read →</a>
-    </div>
-    <div class="card">
-      <span class="tag">Life</span>
-      <h3>Tea at 4 PM</h3>
-      <p>Some conversations only happen over a second cup of tea.</p>
-      <a href="#">Read →</a>
-    </div>
+<section class="controls container">
+  <div class="search-box"><input type="text" id="searchInput" placeholder="Search: love, rain, mystery..."></div>
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">All Stories</button>
+    <button class="filter-btn" data-filter="Love">Love</button>
+    <button class="filter-btn" data-filter="Mystery">Mystery</button>
+    <button class="filter-btn" data-filter="Life">Life</button>
+    <button class="filter-btn" data-filter="Poetry">Poetry</button>
   </div>
+</section>
+
+<main id="stories" class="container">
+  <div class="section-head"><h2>Latest from the Loft</h2><p>Freshly brewed, daily</p></div>
+  <div class="grid" id="storyGrid"></div>
 </main>
 
+<section id="about" class="about container">
+  <div class="about-card">
+    <h3>Built Like a Print House, Not a Feed</h3>
+    <p>Other sites want you to scroll forever. We want you to stay with one story. Every card is designed with typography, white space, and reading time — like a real bookshop in Darrang.</p>
+    <p>— Founder, The Stories Loft</p>
+  </div>
+</section>
+
 <footer>
-  <p>© 2026 The Stories Loft — Built with heart in Darrang, Assam</p>
+  <div class="footer-inner container">
+    <div>© 2026 The Stories Loft • Built with heart in Darrang, Assam</div>
+    <div><a href="admin.html">Writer Panel</a> • <a href="sitemap.xml">Sitemap</a> • <a href="robots.txt">Robots</a></div>
+  </div>
 </footer>
+<script src="script.js"></script>
 </body>
-</html
+</html>

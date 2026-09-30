@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google-site-verification" content="3kz8NgRYiAylAAL5FXenGO7uc1FtCqf8ioonQMUL3tE" />
+<title>Story - The Stories Loft</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo">The Stories Loft</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="admin.html" class="admin-link">+ Write</a>
+  </div>
+</nav>
+
+<div id="storyContainer" class="story-page">Loading story...</div>
+
+<script>
+function getStories(){
+  const s=localStorage.getItem('loft_stories');
+  return s?JSON.parse(s):[];
+}
+
+function load(){
+  const params = new URLSearchParams(window.location.search);
+  const id = Number(params.get('id'));
+  const stories = getStories();
+  const story = stories.find(x=>x.id===id) || stories[0];
+
+  if(!story){
+    document.getElementById('storyContainer').innerHTML='<p style="text-align:center;padding:60px">Story not found<br><a href="index.html">← Back to home</a></p>';
+    return;
+  }
+
+  document.title = story.title + ' - The Stories Loft';
+
+  document.getElementById('storyContainer').innerHTML = `
+    <a href="index.html" style="color:#6b6b6b;font-size:.9rem;display:inline-block;margin-bottom:12px">← Back to Loft</a>
+    <div class="story-meta">
+      <span class="tag">${story.genre}</span>
+      <span>•</span>
+      <span>${story.readTime}</span>
+      <span>•</span>
+      <span>${story.date}</span>
+    </div>
+    <h1 style="font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3rem);line-height:1.1;margin:14px 0">${story.title}</h1>
+    <p style="color:#6b6b6b;font-style:italic;margin-bottom:18px">By ${story.author}</p>
+    ${story.cover? `<img src="${story.cover}" style="width:100%;border-radius:18px;margin:20px 0;max-height:460px;object-fit:cover">` : ""}
+    <div class="story-content" style="font-size:1.15rem;line-height:1.9;white-space:pre-wrap">${story.content.replace(/</g,'&lt;')}</div>
+    <div style="margin-top:50px;padding-top:24px;border-top:1px solid #ece6df;display:flex;gap:12px">
+      <a href="index.html" class="btn btn-primary">More Stories</a>
+      <a href="admin.html" class="btn btn-ghost">Write Your Own</a>
+    </div>
+  `;
+}
+load();
+</script>
+</body>
+</html>
