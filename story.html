@@ -1,63 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="google-site-verification" content="3kz8NgRYiAylAAL5FXenGO7uc1FtCqf8ioonQMUL3tE" />
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Story - The Stories Loft</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style>.story-wrap{max-width:720px;margin:0 auto;padding:40px 5% 80px}.story-meta{color:var(--muted);font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}.story-wrap h1{font-size:clamp(32px,5vw,48px);line-height:1.05;margin-bottom:16px}.story-cover{width:100%;height:380px;object-fit:cover;border-radius:22px;margin:18px 0;background:#ece6df}.story-content{font-family:'Lora',serif;font-size:19px;line-height:1.85;margin-top:24px;white-space:pre-wrap}.story-actions{display:flex;gap:12px;margin:28px 0}.action-btn{padding:10px 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:600}.comment-box{margin-top:40px;border-top:1px solid var(--line);padding-top:24px}.comment-box textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text)}</style>
 </head>
 <body>
-<nav class="navbar">
-  <a href="index.html" class="logo">The Stories Loft</a>
-  <div class="nav-links">
-    <a href="index.html">Home</a>
-    <a href="admin.html" class="admin-link">+ Write</a>
-  </div>
-</nav>
-
-<div id="storyContainer" class="story-page">Loading story...</div>
-
+<div class="progress" id="progress"></div>
+<nav class="navbar"><a href="index.html" class="logo"><span class="logo-mark">T</span> The Stories Loft</a><a href="index.html">← All Stories</a></nav>
+<div id="storyRoot" class="story-wrap"></div>
 <script>
-function getStories(){
-  const s=localStorage.getItem('loft_stories');
-  return s?JSON.parse(s):[];
+function getStories(){const s=localStorage.getItem('loft_stories');if(s){try{return JSON.parse(s)}catch(e){}}return [];}
+const id=Number(localStorage.getItem('loft_current'));const stories=getStories();const st=stories.find(x=>x.id===id)||stories[0];
+if(!st){document.getElementById('storyRoot').innerHTML='<p>Story not found. Go back.</p>';}else{
+document.title=st.title+' — The Stories Loft';
+document.getElementById('storyRoot').innerHTML=`
+<div class="story-meta">${st.genre} • ${st.readTime} • ${st.date}</div>
+<h1>${st.title}</h1>
+<p style="color:var(--muted)">By ${st.author} • ❤️ ${st.likes||0} likes • 👁️ ${st.views||0} views</p>
+${st.cover?<img class="story-cover" src="${st.cover}">:''}
+<div class="story-actions">
+<button class="action-btn" onclick="like()">❤️ Like (${st.likes||0})</button>
+<button class="action-btn" onclick="share()">↗️ Share</button>
+</div>
+<div class="story-content">${st.content}</div>
+<div class="comment-box"><h3>Thoughts?</h3><textarea id="cmt" placeholder="Write a comment..."></textarea><button class="action-btn" style="margin-top:8px" onclick="addComment()">Post comment</button><div id="cmtList" style="margin-top:16px"></div></div>
+<div style="margin-top:40px"><h3>More from the Loft</h3><div id="related"></div></div>
+`;
+function loadComments(){const c=JSON.parse(localStorage.getItem('cmt_'+st.id)||'[]');document.getElementById('cmtList').innerHTML=c.map(x=><div style="padding:10px 0;border-bottom:1px solid var(--line)"><b>${x.name}</b><br>${x.text}</div>).join('');}
+loadComments();
+window.addComment=function(){const t=document.getElementById('cmt').value.trim();if(!t)return;const c=JSON.parse(localStorage.getItem('cmt_'+st.id)||'[]');c.unshift({name:'Reader',text:t});localStorage.setItem('cmt_'+st.id,JSON.stringify(c));document.getElementById('cmt').value='';loadComments();}
+const related=stories.filter(x=>x.id!==st.id).slice(0,2);document.getElementById('related').innerHTML=related.map(r=><div style="padding:12px;border:1px solid var(--line);border-radius:12px;margin:8px 0;cursor:pointer" onclick="localStorage.setItem('loft_current',${r.id});location.reload()">${r.title} • ${r.genre}</div>).join('');
 }
-
-function load(){
-  const params = new URLSearchParams(window.location.search);
-  const id = Number(params.get('id'));
-  const stories = getStories();
-  const story = stories.find(x=>x.id===id) || stories[0];
-
-  if(!story){
-    document.getElementById('storyContainer').innerHTML='<p style="text-align:center;padding:60px">Story not found<br><a href="index.html">← Back to home</a></p>';
-    return;
-  }
-
-  document.title = story.title + ' - The Stories Loft';
-
-  document.getElementById('storyContainer').innerHTML = `
-    <a href="index.html" style="color:#6b6b6b;font-size:.9rem;display:inline-block;margin-bottom:12px">← Back to Loft</a>
-    <div class="story-meta">
-      <span class="tag">${story.genre}</span>
-      <span>•</span>
-      <span>${story.readTime}</span>
-      <span>•</span>
-      <span>${story.date}</span>
-    </div>
-    <h1 style="font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3rem);line-height:1.1;margin:14px 0">${story.title}</h1>
-    <p style="color:#6b6b6b;font-style:italic;margin-bottom:18px">By ${story.author}</p>
-    ${story.cover? `<img src="${story.cover}" style="width:100%;border-radius:18px;margin:20px 0;max-height:460px;object-fit:cover">` : ""}
-    <div class="story-content" style="font-size:1.15rem;line-height:1.9;white-space:pre-wrap">${story.content.replace(/</g,'&lt;')}</div>
-    <div style="margin-top:50px;padding-top:24px;border-top:1px solid #ece6df;display:flex;gap:12px">
-      <a href="index.html" class="btn btn-primary">More Stories</a>
-      <a href="admin.html" class="btn btn-ghost">Write Your Own</a>
-    </div>
-  `;
-}
-load();
+function like(){let stories=getStories();let i=stories.findIndex(x=>x.id===id);if(i>-1){stories[i].likes=(stories[i].likes||0)+1;localStorage.setItem('loft_stories',JSON.stringify(stories));location.reload();}}
+function share(){if(navigator.share){navigator.share({title:st.title,text:st.excerpt,url:location.href});}else{navigator.clipboard.writeText(location.href);alert('Link copied!');}}
+window.addEventListener('scroll',()=>{const h=document.documentElement;const scrolled=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;document.getElementById('progress').style.width=scrolled+'%';});
 </script>
 </body>
 </html>

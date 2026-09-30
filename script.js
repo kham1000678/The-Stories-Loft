@@ -1,26 +1,36 @@
 const defaultStories=[
-{id:1,title:"The Letter That Never Came",genre:"Love",excerpt:"A story of waiting, rain, and a mailbox that stayed empty for years.",content:"It rained that year like it would never stop.\n\nEvery evening at 5:30, she would walk to the old red mailbox at the end of the lane. The postman knew her by now. He would just shake his head, gently.\n\nShe had written 47 letters. He had promised he would reply to one.\n\nThe 48th letter she never sent.",author:"Loft Original",date:"2026-09-28",readTime:"4 min",cover:""},
-{id:2,title:"The Light in the Old Loft",genre:"Mystery",excerpt:"She heard footsteps every night from the loft. No one lived there.",content:"The house was 80 years old. The loft had been locked since 1972.\n\nBut at 2:13 AM every night, the bulb in the loft would flicker on.\n\nOn Night 11, she finally climbed up. The loft was empty, except for a single chair facing the window, still warm.",author:"Loft Original",date:"2026-09-27",readTime:"5 min",cover:""},
-{id:3,title:"Tea at 4 PM",genre:"Life",excerpt:"Some conversations only happen over a second cup of tea.",content:"In Assam, we don't measure time in hours. We measure it in cups of tea.\n\nFirst cup: formalities. Second cup: truth.",author:"Loft Original",date:"2026-09-26",readTime:"3 min",cover:""}
+{id:1,title:"The Letter That Never Came",genre:"Love",excerpt:"She waited for three years for a letter that was never written. Or was it?",content:"Full story of The Letter...\n\nShe kept the mailbox empty on purpose. Because if it was empty, the hope was still alive.\n\nThree winters passed in Shillong. The rain wrote its own letters on her window.",author:"Khamkor Syiemlieh",date:"2026-09-28",readTime:"4 min",cover:"",likes:24,views:312},
+{id:2,title:"Midnight at Police Bazaar",genre:"Mystery",excerpt:"A missing diary, a tea stall that never closes, and a city that remembers.",content:"Police Bazaar never sleeps. But that night, it was watching.\n\nThe diary was last seen at 11:47 PM.",author:"Khamkor Syiemlieh",date:"2026-09-25",readTime:"5 min",cover:"",likes:18,views:210}
 ];
-function getStories(){const s=localStorage.getItem('loft_stories');if(s){try{return JSON.parse(s)}catch(e){}}localStorage.setItem('loft_stories',JSON.stringify(defaultStories));return defaultStories;}
-function saveStories(s){localStorage.setItem('loft_stories',JSON.stringify(s));}
-function renderStories(filter="all",search=""){
-  const grid=document.getElementById('storyGrid');if(!grid)return;
-  let stories=getStories();
-  document.getElementById('totalStories').innerText=stories.length;
-  if(filter!=="all")stories=stories.filter(s=>s.genre===filter);
-  if(search){const q=search.toLowerCase();stories=stories.filter(s=>s.title.toLowerCase().includes(q)||s.excerpt.toLowerCase().includes(q));}
-  grid.innerHTML=stories.map(s=>`
-    <div class="card">
-      ${s.cover?`<img class="cover" src="${s.cover}">`:""}
-      <div class="card-top"><span class="tag">${s.genre}</span><small>${s.readTime} • ${s.date}</small></div>
-      <h3>${s.title}</h3><p>${s.excerpt}</p><a href="story.html?id=${s.id}">Read story →</a>
-    </div>`).join('')||`<p style="grid-column:1/-1;text-align:center;padding:40px;color:#888">No stories found</p>`;
+function getStories(){const s=localStorage.getItem('loft_stories');if(s){try{return JSON.parse(s)}catch(e){}}return [...defaultStories];}
+function saveStories(a){localStorage.setItem('loft_stories',JSON.stringify(a));}
+let currentFilter='all',currentSearch='',currentSort='new';
+function render(){
+let stories=getStories();
+if(currentFilter!=='all') stories=stories.filter(x=>x.genre===currentFilter);
+if(currentSearch) stories=stories.filter(x=>x.title.toLowerCase().includes(currentSearch.toLowerCase())||x.excerpt.toLowerCase().includes(currentSearch.toLowerCase()));
+if(currentSort==='popular') stories.sort((a,b)=>(b.likes||0)-(a.likes||0));
+else if(currentSort==='views') stories.sort((a,b)=>(b.views||0)-(a.views||0));
+else stories.sort((a,b)=>b.id-a.id);
+const grid=document.getElementById('storiesGrid');if(!grid)return;
+grid.innerHTML=stories.map(s=>`
+<div class="card-pro" onclick="openStory(${s.id})">
+<div class="card-cover" style="${s.cover?`background-image:url(${s.cover})`:''}"></div>
+<div class="card-body">
+<div class="card-meta"><span>${s.genre}</span>•<span>${s.readTime}</span>•<span>${s.date}</span></div>
+<h3>${s.title}</h3>
+<p>${s.excerpt}</p>
+<div class="card-foot"><span>❤️ ${s.likes||0}</span><span>👁️ ${s.views||0}</span><span>By ${s.author}</span></div>
+</div>
+</div>`).join('')||'<p style="padding:20px">No stories found.</p>';
+document.getElementById('totalStories').textContent=getStories().length;
+document.getElementById('totalViews').textContent=getStories().reduce((a,b)=>a+(b.views||0),0);
+document.getElementById('totalLikes').textContent=getStories().reduce((a,b)=>a+(b.likes||0),0);
 }
-document.addEventListener('DOMContentLoaded',()=>{
-  renderStories();
-  const si=document.getElementById('searchInput');
-  if(si)si.addEventListener('input',e=>{const a=document.querySelector('.filter-btn.active')?.dataset.filter||'all';renderStories(a,e.target.value);});
-  document.querySelectorAll('.filter-btn').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderStories(b.dataset.filter,si?.value||"");});});
-});
+function filterBy(g){currentFilter=g;document.querySelectorAll('.filter').forEach(b=>b.classList.toggle('active',b.dataset.filter===g));render();}
+function searchStories(v){currentSearch=v;render();}
+function sortStories(v){currentSort=v;render();}
+function openStory(id){let stories=getStories();const i=stories.findIndex(x=>x.id===id);if(i>-1){stories[i].views=(stories[i].views||0)+1;saveStories(stories);}localStorage.setItem('loft_current',id);location.href='story.html';}
+function toggleTheme(){const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);document.getElementById('themeToggle').textContent=t==='dark'?'☀️':'🌙';}
+(function(){const t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}render();})();
+function subscribe(e){e.preventDefault();alert('Subscribed! You will get next story. (Demo - connect to Email service later)');e.target.reset();}

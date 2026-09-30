@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://kham1000678.github.io/The-Stories-Loft/sitemap.xml
