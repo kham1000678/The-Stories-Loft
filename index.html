@@ -1,52 +1,116 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Stories Loft — Original Stories for Quiet Hearts</title>
-<meta name="description" content="The Stories Loft - Curated original fiction, love stories, mystery and life essays by K1000. New story every week.">
-<meta property="og:title" content="The Stories Loft">
-<meta property="og:description" content="Original stories that stay with you. Love, Mystery, Life.">
-<meta property="og:image" content="https://kham1000678.github.io/The-Stories-Loft/og.jpg">
-<meta property="og:url" content="https://kham1000678.github.io/The-Stories-Loft/">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<title>The Stories Loft — Original Stories</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#faf6f1;color:#1e293b}
+.top-banner{background:linear-gradient(90deg,#0ea5e9,#6366f1);color:white;padding:10px;text-align:center;font-family:system-ui;font-weight:bold;font-size:14px;letter-spacing:.3px}
+.header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#faf6f1}
+.logo{display:flex;align-items:center;gap:8px;font-weight:bold;font-family:system-ui}
+.logo-icon{background:#1e293b;color:white;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.search{padding:8px 14px;border:1px solid #ddd;border-radius:20px;width:200px;background:white}
+.write-btn{background:#1e293b;color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-weight:bold}
+.hero{text-align:center;padding:60px 20px 30px}
+.hero small{letter-spacing:3px;color:#94a3b8;font-family:system-ui;font-size:11px}
+.hero h1{font-size:56px;margin:16px 0;line-height:1.1;color:#1e293b}
+.hero p{color:#64748b;max-width:400px;margin:12px auto;font-size:15px}
+.hero .counts{margin-top:12px;color:#94a3b8;font-family:system-ui;font-size:13px}
+.filters{display:flex;gap:8px;justify-content:center;padding:20px;flex-wrap:wrap;font-family:system-ui}
+.filter{padding:8px 16px;border-radius:20px;border:none;cursor:pointer;background:#e7e5e4;color:#57534e}
+.filter.active{background:#1e293b;color:white}
+#stories{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;padding:20px 24px;max-width:1100px;margin:0 auto}
+.card{background:white;border-radius:16px;padding:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06);transition:.2s;border:1px solid #f1f5f9}
+.card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.1)}
+.card h3{font-size:18px;margin-bottom:8px}
+.card p{color:#64748b;font-size:14px;line-height:1.5;margin-bottom:12px}
+.card small{color:#94a3b8;font-family:system-ui;font-size:12px}
+</style>
 </head>
 <body>
-<nav class="navbar">
-  <a href="index.html" class="logo"><span class="logo-mark">T</span> The Stories Loft</a>
-  <div class="nav-links">
-    <input id="searchInput" placeholder="Search stories..." oninput="searchStories(this.value)">
-    <button id="themeToggle" onclick="toggleTheme()" title="Dark mode">🌙</button>
-    <a href="admin.html" class="write-btn">✍️ Write</a>
-  </div>
-</nav>
 
-<header class="hero-pro">
-  <div class="hero-badge">EST. 2026 • SHILLONG</div>
-  <h1>Stories that <em>stay</em> with you.</h1>
-  <p>Original fiction, hand-picked. No AI. No ads. Just quiet, human stories.</p>
-  <div class="hero-stats"><span id="totalStories">0</span> stories • <span id="totalViews">0</span> reads • <span id="totalLikes">0</span> hearts</div>
-</header>
+<div id="liveBanner" class="top-banner" style="position:sticky;top:0;z-index:99"> LIVE NOW: Loading...</div>
 
-<div class="controls">
-  <div class="filters">
-    <button class="filter active" data-filter="all" onclick="filterBy('all')">All</button>
-    <button class="filter" data-filter="Love" onclick="filterBy('Love')">Love</button>
-    <button class="filter" data-filter="Mystery" onclick="filterBy('Mystery')">Mystery</button>
-    <button class="filter" data-filter="Life" onclick="filterBy('Life')">Life</button>
-    <button class="filter" data-filter="Poetry" onclick="filterBy('Poetry')">Poetry</button>
+<div class="header">
+  <div class="logo"><div class="logo-icon">T</div> The Stories Loft</div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <input class="search" id="searchBox" placeholder="Search stories...">
+    <button class="write-btn" onclick="location.href='write.html'">✍️ Write</button>
   </div>
-  <select id="sortSelect" onchange="sortStories(this.value)"><option value="new">Newest</option><option value="popular">Most Liked</option><option value="views">Most Read</option></select>
 </div>
 
-<main id="storiesGrid" class="grid-pro"></main>
+<div class="hero">
+  <small>EST. 2026 • SHILLONG</small>
+  <h1>Stories that<br>stay with you.</h1>
+  <p>Original fiction, hand-picked. No AI. No ads. Just quiet, human stories.</p>
+  <div class="counts" id="realCounts">0 stories • 0 reads • 0 hearts</div>
+</div>
 
-<section class="newsletter"><h3>Get the next story in your inbox</h3><p>Join 120+ quiet readers. One story a week, no spam.</p><form onsubmit="subscribe(event)"><input type="email" placeholder="your email" required><button>Join</button></form></section>
+<div class="filters">
+  <button class="filter active" onclick="filterGen('All',this)">All</button>
+  <button class="filter" onclick="filterGen('Love',this)">Love</button>
+  <button class="filter" onclick="filterGen('Mystery',this)">Mystery</button>
+  <button class="filter" onclick="filterGen('Life',this)">Life</button>
+  <button class="filter" onclick="filterGen('Poetry',this)">Poetry</button>
+</div>
 
-<footer class="footer-pro"><div><b>The Stories Loft</b><br>By K1000<br>Shillong, Meghalaya</div><div><a href="#">About</a><a href="#">Instagram</a><a href="#">Contact</a></div><div>© 2026 All rights reserved<br>Handcrafted, not generated.</div></footer>
+<div id="stories"></div>
 
-<script src="script.js"></script>
+<script>
+const defaultStories=[
+  {id:'1', title:"The Letter That Never Came", genre:"Love", excerpt:"She waited for three years at the same post office, until the postmaster finally told her the truth."},
+  {id:'2', title:"Midnight at Police Bazaar", genre:"Mystery", excerpt:"A missing diary, a tea stall that never closes, and a secret hidden in Shillong's oldest market."},
+  {id:'3', title:"The Last Song of Cherrapunji", genre:"Life", excerpt:"When the rain stops for the first time in months, an old musician remembers why he stopped playing."}
+];
+let liveData={};
+let currentFilter='All';
+
+async function loadLive(){
+  try{
+    const res = await fetch('http://localhost:3000/api/dashboard');
+    const data = await res.json();
+    liveData={};
+    data.stories.forEach(s=>liveData[s.id]=s);
+    
+    document.getElementById('liveBanner').innerHTML = `🔥 LIVE NOW: ${data.total_views} Total Views • ${data.visitors_today} Today • ❤️ ${data.total_likes} Likes • 📚 ${data.stories.length} Stories`;
+    document.getElementById('realCounts').textContent = `${data.stories.length} stories • ${data.total_views} reads • ${data.total_likes} hearts`;
+    
+    render();
+  }catch(e){
+    document.getElementById('liveBanner').textContent = '📖 The Stories Loft — Live';
+    render();
+  }
+}
+
+function render(){
+  const q = (document.getElementById('searchBox').value||'').toLowerCase();
+  const grid = document.getElementById('stories');
+  grid.innerHTML = defaultStories.filter(s=>{
+    const matchGenre = currentFilter==='All' || s.genre===currentFilter;
+    const matchSearch = s.title.toLowerCase().includes(q) || s.excerpt.toLowerCase().includes(q);
+    return matchGenre && matchSearch;
+  }).map(s=>{
+    const real = liveData[s.id] || {views:0, hearts:0};
+    return `<div class="card" onclick="location.href='story.html?id=${s.id}'">
+      <h3>${s.title}</h3>
+      <p>${s.excerpt}</p>
+      <small>${s.genre} • ❤️ ${real.hearts} • 👁️ ${real.views} views</small>
+    </div>`;
+  }).join('');
+}
+
+function filterGen(g, btn){
+  currentFilter=g;
+  document.querySelectorAll('.filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+document.getElementById('searchBox').addEventListener('input', render);
+
+loadLive();
+setInterval(loadLive, 3000);
+</script>
 </body>
 </html>

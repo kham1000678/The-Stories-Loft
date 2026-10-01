@@ -1,43 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Writer Panel - The Stories Loft</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<title>Admin - The Stories Loft</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-.admin-wrap{max-width:680px;margin:40px auto;background:#fff;padding:32px;border-radius:22px;border:1px solid #ece6df;box-shadow:0 20px 60px rgba(0,0,0,.06)}
-.form-group{margin-bottom:18px;display:flex;flex-direction:column;gap:7px}
-.form-group label{font-weight:600;font-size:.9rem}
-.form-group input,.form-group select,.form-group textarea{padding:13px 14px;border:1px solid #ece6df;border-radius:12px;font-family:Inter;font-size:.95rem;outline:none}
-.form-group textarea{min-height:100px}
-.form-group textarea.large{min-height:280px}
-.save-btn{background:#1a1a1a;color:#fff;padding:14px;border:none;border-radius:999px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;font-size:1rem}
-.success-msg{background:#e6f4ea;color:#1e7a34;padding:12px 14px;border-radius:12px;margin-top:14px;display:none;text-align:center;font-weight:500}
-.preview-img{width:100%;max-height:300px;object-fit:cover;border-radius:12px;display:none;margin-top:10px}
+body{font-family:system-ui;background:#0f172a;color:white;padding:20px}
+.box{background:#1e293b;padding:20px;border-radius:16px;display:inline-block;margin:8px;min-width:130px;text-align:center;border:1px solid #334155}
+.box h2{font-size:36px;margin:0;color:#38bdf8}
+.chart-box{background:#1e293b;padding:20px;border-radius:16px;margin-top:20px;border:1px solid #334155}
+table{width:100%;margin-top:20px;border-collapse:collapse;background:#1e293b;border-radius:12px;overflow:hidden}
+th,td{padding:14px;text-align:left;border-bottom:1px solid #334155}
 </style>
 </head>
 <body>
-<nav class="navbar"><a href="index.html" class="logo">The Stories Loft</a><div class="nav-links"><a href="index.html">← Back to Home</a></div></nav>
-<div class="admin-wrap">
-<h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:6px">Writer Panel</h2>
-<p style="color:#6b6b6b;margin-bottom:24px">Publish like a pro company.</p>
-<div class="form-group"><label>Story Title *</label><input id="title" placeholder="e.g., The Letter That Never Came"></div>
-<div style="display:flex;gap:12px"><div class="form-group" style="flex:1"><label>Genre</label><select id="genre"><option>Love</option><option>Mystery</option><option>Life</option><option>Poetry</option></select></div><div class="form-group" style="flex:1"><label>Read Time</label><input id="readTime" value="4 min"></div></div>
-<div class="form-group"><label>Cover Image</label><input type="file" id="coverFile" accept="image/*"><img id="preview" class="preview-img"></div>
-<div class="form-group"><label>Short Excerpt *</label><textarea id="excerpt" placeholder="One-line hook..."></textarea></div>
-<div class="form-group"><label>Full Story *</label><textarea id="content" class="large" placeholder="Write your full story here..."></textarea></div>
-<div class="form-group"><label>Author</label><input id="author" value="K1000"></div>
-<button class="save-btn" onclick="publish()">✨ Publish Story to Loft</button>
-<div id="success" class="success-msg">Published! Redirecting to homepage...</div>
-<button style="width:100%;margin-top:12px;padding:12px;border:1px solid #ddd;background:#fff;border-radius:999px;cursor:pointer" onclick="exportJSON()">⬇️ Export stories.json for GitHub</button>
+<h1>📊 The Stories Loft - Dashboard</h1>
+<div id="stats">Loading...</div>
+
+<div class="chart-box">
+<h3>📈 Views Analytics</h3>
+<canvas id="myChart" height="120"></canvas>
 </div>
+
+<table><tr><th>Story ID</th><th>Views</th><th>Hearts</th><th>Popularity</th></tr><tbody id="rows"></tbody></table>
+
 <script>
-let coverData="";document.getElementById('coverFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{coverData=r.result;const p=document.getElementById('preview');p.src=coverData;p.style.display='block';};r.readAsDataURL(f);});
-function getStories(){const s=localStorage.getItem('loft_stories');if(s){try{return JSON.parse(s)}catch(e){}}return [];}
-function publish(){const t=document.getElementById('title').value.trim();const ex=document.getElementById('excerpt').value.trim();const co=document.getElementById('content').value.trim();if(!t||!ex||!co){alert("Fill Title, Excerpt and Full Story");return;}const stories=getStories();const ns={id:Date.now(),title:t,genre:document.getElementById('genre').value,excerpt:ex,content:co,author:document.getElementById('author').value||'Loft Original',date:new Date().toISOString().split('T')[0],readTime:document.getElementById('readTime').value||'4 min',cover:coverData};stories.unshift(ns);localStorage.setItem('loft_stories',JSON.stringify(stories));document.getElementById('success').style.display='block';setTimeout(()=>{window.location.href='index.html';},1200);}
-function exportJSON(){const d=localStorage.getItem('loft_stories');if(!d){alert('No stories yet');return;}const b=new Blob([d],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='stories.json';a.click();}
+let chart;
+async function load(){
+  const r = await fetch('http://localhost:3000/api/dashboard');
+  const d = await r.json();
+  
+  document.getElementById('stats').innerHTML = `
+    <div class="box"><h2>${d.visitors_today}</h2><p>Visitors Today</p></div>
+    <div class="box"><h2>${d.total_views}</h2><p>Total Views</p></div>
+    <div class="box"><h2>${d.total_likes}</h2><p>Total Likes</p></div>
+    <div class="box"><h2>${d.stories.length}</h2><p>Stories</p></div>
+  `;
+  
+  document.getElementById('rows').innerHTML = d.stories.map(s=>{
+    const bar = '█'.repeat(Math.min(s.views, 10));
+    return `<tr><td>${s.id}</td><td>${s.views}</td><td>${s.hearts}</td><td style="color:#38bdf8">${bar} ${s.views>5?'🔥':''}</td></tr>`;
+  }).join('');
+
+  // CHART
+  const ctx = document.getElementById('myChart').getContext('2d');
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: d.stories.map(s=>'Story '+s.id),
+      datasets: [
+        {label:'Views', data:d.stories.map(s=>s.views), backgroundColor:'#38bdf8'},
+        {label:'Hearts', data:d.stories.map(s=>s.hearts), backgroundColor:'#fb7185'}
+      ]
+    },
+    options:{responsive:true, plugins:{legend:{labels:{color:'white'}}}, scales:{x:{ticks:{color:'white'}}, y:{ticks:{color:'white'}}}}
+  });
+}
+load();
+setInterval(load, 3000);
 </script>
 </body>
 </html>
