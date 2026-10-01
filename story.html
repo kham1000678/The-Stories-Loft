@@ -21,6 +21,25 @@ function getStories(){let s=localStorage.getItem('loft_stories');if(s){try{const
 const params=new URLSearchParams(location.search);let id=Number(localStorage.getItem('loft_current'))||Number(params.get('id'))||1;
 const stories=getStories();let st=stories.find(x=>x.id===id);if(!st)st=stories[0];
 document.title=st.title+' — The Stories Loft';
+// --- REAL VIEW COUNT from MySQL ---
+fetch(`http://localhost:3000/api/stories/${id}/view`,{method:'POST'})
+.then(r=>r.json())
+.then(data=>{
+  // update the views on page to real count
+  st.views = data.views;
+  const vEl = document.querySelector('#realViews');
+  if(vEl) vEl.textContent = data.views;
+}).catch(()=>{});
+
+// --- REAL HEART COUNT ---
+window.addHeart = ()=>{
+  fetch(`http://localhost:3000/api/stories/${id}/heart`,{method:'POST'})
+  .then(r=>r.json())
+  .then(data=>{
+    const hEl = document.querySelector('#realHearts');
+    if(hEl) hEl.textContent = data.hearts;
+  });
+}
 document.getElementById('storyRoot').innerHTML=`
 <div class="story-meta">${st.genre} • ${st.readTime} • ${st.date}</div>
 <h1>${st.title}</h1>
@@ -30,7 +49,23 @@ ${st.cover?`<img class="story-cover" src="${st.cover}">`:''}
 <div class="story-content">${st.content}</div>
 <div style="margin-top:40px;border-top:1px solid var(--line);padding-top:20px"><h3>More stories</h3>${stories.filter(x=>x.id!==st.id).slice(0,2).map(r=>`<div style="padding:12px;border:1px solid var(--line);border-radius:12px;margin:8px 0;cursor:pointer" onclick="localStorage.setItem('loft_current',${r.id});location.href='story.html?id=${r.id}'">${r.title} • ${r.genre}</div>`).join('')}</div>
 `;
-function like(){alert('Liked! ❤️ (Saved on this device)');}
+// GET STORY ID FROM URL
+const storyId = new URLSearchParams(window.location.search).get('id') || '1';
+
+// COUNT VIEW AUTOMATICALLY WHEN PAGE OPENS
+fetch(`http://localhost:3000/api/stories/${storyId}/view`).then(r=>r.json()).then(d=>{
+  console.log('View counted:', d.views);
+});
+
+// REAL LIKE FUNCTION - SAVES TO MYSQL
+function like(){
+  fetch(`http://localhost:3000/api/stories/${storyId}/heart`)
+    .then(r=>r.json())
+    .then(d=>{
+      alert(`Liked! ❤️ Total hearts: ${d.hearts}`);
+      location.reload(); // reload to show new heart count
+    });
+}
 window.addEventListener('scroll',()=>{const h=document.documentElement;const scrolled=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;document.getElementById('progress').style.width=scrolled+'%';});
 </script>
 </body>
