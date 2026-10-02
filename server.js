@@ -20,10 +20,9 @@ try {
     connectionLimit: 5
   };
   if (process.env.DB_HOST &&!process.env.DB_HOST.includes('localhost')) {
-    config.ssl = { rejectUnauthorized: true };
+    config.ssl = { rejectUnauthorized: false };
   }
   db = mysql.createPool(config).promise();
-  ssl: { rejectUnauthorized: false }
   db.query('SELECT 1').then(()=>{ dbReady=true; console.log('DB Ready!'); }).catch(e=>{ console.log('DB fail (site still runs):', e.message); db=null; dbReady=false; });
 } catch(e){ console.log('DB init fail:', e.message); }
 
