@@ -23,6 +23,7 @@ try {
     config.ssl = { rejectUnauthorized: true };
   }
   db = mysql.createPool(config).promise();
+  ssl: { rejectUnauthorized: false }
   db.query('SELECT 1').then(()=>{ dbReady=true; console.log('DB Ready!'); }).catch(e=>{ console.log('DB fail (site still runs):', e.message); db=null; dbReady=false; });
 } catch(e){ console.log('DB init fail:', e.message); }
 
