@@ -1,104 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>The Stories Loft - Shillong</title>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Stories Loft — Original Stories</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Georgia',serif;background:#faf6f1;color:#1e293b}
-.top-banner{background:linear-gradient(90deg,#0ea5e9,#6366f1);color:white;padding:10px;text-align:center;font-family:system-ui;font-weight:bold;font-size:14px;letter-spacing:.3px}
-.header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#faf6f1}
-.logo{display:flex;align-items:center;gap:8px;font-weight:bold;font-family:system-ui}
-.logo-icon{background:#1e293b;color:white;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px}
-.search{padding:8px 14px;border:1px solid #ddd;border-radius:20px;width:200px;background:white}
-.write-btn{background:#1e293b;color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-weight:bold}
-.hero{text-align:center;padding:60px 20px 30px}
-.hero small{letter-spacing:3px;color:#94a3b8;font-family:system-ui;font-size:11px}
-.hero h1{font-size:56px;margin:16px 0;line-height:1.1;color:#1e293b}
-.hero p{color:#64748b;max-width:400px;margin:12px auto;font-size:15px}
-.hero .counts{margin-top:12px;color:#94a3b8;font-family:system-ui;font-size:13px}
-.filters{display:flex;gap:8px;justify-content:center;padding:20px;flex-wrap:wrap;font-family:system-ui}
-.filter{padding:8px 16px;border-radius:20px;border:none;cursor:pointer;background:#e7e5e4;color:#57534e}
-.filter.active{background:#1e293b;color:white}
-#stories{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;padding:20px 24px;max-width:1100px;margin:0 auto}
-.card{background:white;border-radius:16px;padding:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06);transition:.2s;border:1px solid #f1f5f9}
-.card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.1)}
-.card h3{font-size:18px;margin-bottom:8px}
-.card p{color:#64748b;font-size:14px;line-height:1.5;margin-bottom:12px}
-.card small{color:#94a3b8;font-family:system-ui;font-size:12px}
+body{font-family: Georgia, serif; background:#f8f6f1; margin:0; padding:0;}
+.topbar{background:#2a5bd7; color:white; text-align:center; padding:8px; font-size:14px;}
+.header{display:flex; justify-content:space-between; padding:20px 40px; align-items:center;}
+#searchBox{padding:8px 15px; border-radius:20px; border:1px solid #ddd;}
+.hero{text-align:center; padding:60px 20px;}
+.hero h1{font-size:56px; line-height:1.1; margin:10px 0;}
+.filter{padding:8px 16px; border-radius:20px; border:none; margin:5px; cursor:pointer; background:#eee;}
+.filter.active{background:#2a5bd7; color:white;}
+#stories{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:20px; padding:30px 40px;}
+.card{background:white; padding:20px; border-radius:12px; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+.card:hover{transform:translateY(-3px);}
 </style>
 </head>
 <body>
-
-<div id="liveBanner" class="top-banner" style="position:sticky;top:0;z-index:99"> LIVE NOW: Loading...</div>
-
+<div class="topbar" id="liveTop">LIVE NOW: Loading...</div>
 <div class="header">
-  <div class="logo"><div class="logo-icon">T</div> The Stories Loft</div>
-  <div style="display:flex;gap:12px;align-items:center">
-    <input class="search" id="searchBox" placeholder="Search stories...">
-    <button class="write-btn" onclick="location.href='write.html'">✍️ Write</button>
-  </div>
+  <div><b>The Stories Loft</b></div>
+  <div><input id="searchBox" placeholder="Search stories..."> <button style="background:black;color:white;border-radius:20px;padding:8px 15px; border:none;">Write</button></div>
 </div>
-
 <div class="hero">
   <small>EST. 2026 • SHILLONG</small>
   <h1>Stories that<br>stay with you.</h1>
-  <p>Original fiction, hand-picked. No AI. No ads. Just quiet, human stories.</p>
-  <div class="counts" id="realCounts">0 stories • 0 reads • 0 hearts</div>
+  <p>Original fiction, hand-picked. No AI. No ads. Just quiet,<br>human stories.</p>
+  <div id="heroStats" style="color:#888; margin-top:10px;">0 stories • 0 reads • 0 hearts</div>
+  <div style="margin-top:30px;">
+    <button class="filter active" onclick="filterGen('All', this)">All</button>
+    <button class="filter" onclick="filterGen('Love', this)">Love</button>
+    <button class="filter" onclick="filterGen('Mystery', this)">Mystery</button>
+    <button class="filter" onclick="filterGen('Life', this)">Life</button>
+    <button class="filter" onclick="filterGen('Poetry', this)">Poetry</button>
+  </div>
 </div>
-
-<div class="filters">
-  <button class="filter active" onclick="filterGen('All',this)">All</button>
-  <button class="filter" onclick="filterGen('Love',this)">Love</button>
-  <button class="filter" onclick="filterGen('Mystery',this)">Mystery</button>
-  <button class="filter" onclick="filterGen('Life',this)">Life</button>
-  <button class="filter" onclick="filterGen('Poetry',this)">Poetry</button>
-</div>
-
 <div id="stories"></div>
 
 <script>
-const defaultStories=[
-  {id:'1', title:"The Letter That Never Came", genre:"Love", excerpt:"She waited for three years at the same post office, until the postmaster finally told her the truth."},
-  {id:'2', title:"Midnight at Police Bazaar", genre:"Mystery", excerpt:"A missing diary, a tea stall that never closes, and a secret hidden in Shillong's oldest market."},
-  {id:'3', title:"The Last Song of Cherrapunji", genre:"Life", excerpt:"When the rain stops for the first time in months, an old musician remembers why he stopped playing."}
-];
-let liveData={};
-let currentFilter='All';
+let currentFilter = 'All';
+let liveData = {};
 
-async function loadLive(){
-  try{
-    const res = await fetch('http://localhost:3000/api/dashboard');
-    const data = await res.json();
-    liveData={};
-    data.stories.forEach(s=>liveData[s.id]=s);
-    
-    document.getElementById('liveBanner').innerHTML = `🔥 LIVE NOW: ${data.total_views} Total Views • ${data.visitors_today} Today • ❤️ ${data.total_likes} Likes • 📚 ${data.stories.length} Stories`;
-    document.getElementById('realCounts').textContent = `${data.stories.length} stories • ${data.total_views} reads • ${data.total_likes} hearts`;
-    
-    render();
-  }catch(e){
-    document.getElementById('liveBanner').textContent = '📖 The Stories Loft — Live';
-    render();
-  }
-}
+const defaultStories = [
+  {id:1, title:"The Letter That Never Came", excerpt:"And then one day, the letter came — but not from where she expected...", genre:"Love"},
+  {id:2, title:"Midnight at Police Bazaar", excerpt:"Shillong at midnight holds secrets only the streetlights know...", genre:"Mystery"},
+  {id:3, title:"The Last Song of Cherrapunji", excerpt:"Rain, music and a goodbye that never ended...", genre:"Life"},
+  {id:4, title:"Pine Trees Don't Lie", excerpt:"A story about childhood in the hills...", genre:"Poetry"},
+  {id:5, title:"You Again, In Laitumkhrah", excerpt:"She saw him again after 7 years in the same cafe...", genre:"Love"}
+];
 
 function render(){
   const q = (document.getElementById('searchBox').value||'').toLowerCase();
   const grid = document.getElementById('stories');
-  grid.innerHTML = defaultStories.filter(s=>{
+  const filtered = defaultStories.filter(s=>{
     const matchGenre = currentFilter==='All' || s.genre===currentFilter;
     const matchSearch = s.title.toLowerCase().includes(q) || s.excerpt.toLowerCase().includes(q);
     return matchGenre && matchSearch;
-  }).map(s=>{
+  });
+
+  grid.innerHTML = filtered.map(s=>{
     const real = liveData[s.id] || {views:0, hearts:0};
     return `<div class="card" onclick="location.href='story.html?id=${s.id}'">
       <h3>${s.title}</h3>
       <p>${s.excerpt}</p>
-      <small>${s.genre} • ❤️ ${real.hearts} • 👁️ ${real.views} views</small>
+      <small>${s.genre} • 💗 ${real.hearts} • 👁️ ${real.views} views</small>
     </div>`;
   }).join('');
+
+  // hero stats
+  const totalViews = Object.values(liveData).reduce((a,b)=>a+(b.views||0),0);
+  const totalHearts = Object.values(liveData).reduce((a,b)=>a+(b.hearts||0),0);
+  document.getElementById('heroStats').innerText = `${defaultStories.length} stories • ${totalViews} reads • ${totalHearts} hearts`;
+  document.getElementById('liveTop').innerText = `LIVE NOW: ${totalViews} reads • ${totalHearts} hearts • ${defaultStories.length} stories`;
 }
 
 function filterGen(g, btn){
@@ -109,6 +84,15 @@ function filterGen(g, btn){
 }
 document.getElementById('searchBox').addEventListener('input', render);
 
+async function loadLive(){
+  try{
+    const res = await fetch('/api/live');
+    liveData = await res.json();
+    render();
+  }catch(e){ console.log(e); }
+}
+
+render();
 loadLive();
 setInterval(loadLive, 3000);
 </script>

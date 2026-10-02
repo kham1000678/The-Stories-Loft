@@ -1,72 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Story - The Stories Loft</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<style>.story-wrap{max-width:720px;margin:0 auto;padding:40px 5% 80px}.story-meta{color:var(--muted);font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}.story-wrap h1{font-size:clamp(32px,5vw,48px);line-height:1.05;margin-bottom:16px}.story-cover{width:100%;height:380px;object-fit:cover;border-radius:22px;margin:18px 0;background:#ece6df}.story-content{font-family:'Lora',serif;font-size:19px;line-height:1.85;margin-top:24px;white-space:pre-wrap}.story-actions{display:flex;gap:12px;margin:28px 0}.action-btn{padding:10px 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:600}</style>
-</head>
-<body>
-<div class="progress" id="progress" style="position:fixed;top:0;left:0;height:3px;background:var(--text);width:0;z-index:20"></div>
-<nav class="navbar"><a href="index.html" class="logo"><span class="logo-mark">T</span> The Stories Loft</a><a href="index.html">← All Stories</a></nav>
-<div id="storyRoot" class="story-wrap"><p style="padding:40px;text-align:center">Loading story...</p></div>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{font-family:Georgia;max-width:650px;margin:40px auto;padding:20px;background:#f8f6f1;line-height:1.8} #box{background:white;padding:30px;border-radius:12px} button{padding:8px 14px;border-radius:20px;border:1px solid #ddd;background:white;cursor:pointer} #comments{margin-top:30px;background:white;padding:20px;border-radius:12px} input,textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;margin:5px 0;box-sizing:border-box}</style>
+</head><body>
+<a href="/">← Back to Home</a>
+<div id="box"><h1 id="t">Loading...</h1><p id="c"></p>
+<div style="display:flex;gap:10px;margin:15px 0;">
+<button id="likeBtn" onclick="likeIt()">💗 Like (<span id="lc">0</span>)</button>
+<span>👁️ <b id="vc">0</b> views</span>
+<button onclick="navigator.clipboard.writeText(location.href); alert('Link copied!')">🔗 Share</button>
+</div></div>
+<div id="comments"><h3>Comments</h3><div id="list"></div>
+<input id="n" placeholder="Your name"><textarea id="m" placeholder="Write comment"></textarea>
+<button onclick="postC()" style="background:black;color:white;">Post Comment</button></div>
 <script>
-const defaultStories=[
-{id:1,title:"The Letter That Never Came",genre:"Love",excerpt:"She waited for three years for a letter that was never written. Or was it?",content:"She kept the mailbox empty on purpose. Because if it was empty, the hope was still alive.\n\nThree winters passed in Shillong. The rain wrote its own letters on her window.\n\nAnd then one day, the letter came — but not from where she expected.",author:"Khamkor Syiemlieh",date:"2026-09-28",readTime:"4 min",cover:"",likes:24,views:312},
-{id:2,title:"Midnight at Police Bazaar",genre:"Mystery",excerpt:"A missing diary, a tea stall that never closes, and a city that remembers.",content:"Police Bazaar never sleeps. But that night, it was watching.\n\nThe diary was last seen at 11:47 PM.",author:"K1000",date:"2026-09-25",readTime:"5 min",cover:"",likes:18,views:210},
-{id:3,title:"The Last Song of Cherrapunji",genre:"Life",excerpt:"When the rain stops, what do you hear? He went to find out.",content:"He took a bus to Cherrapunji with no return ticket.\n\nEveryone thought he was running away. He was actually running towards something.",author:"k1000",date:"2026-09-20",readTime:"6 min",cover:"",likes:31,views:445}
-];
-function getStories(){let s=localStorage.getItem('loft_stories');if(s){try{const p=JSON.parse(s);if(p.length>0)return p}catch(e){}}return [...defaultStories];}
-const params=new URLSearchParams(location.search);let id=Number(localStorage.getItem('loft_current'))||Number(params.get('id'))||1;
-const stories=getStories();let st=stories.find(x=>x.id===id);if(!st)st=stories[0];
-document.title=st.title+' — The Stories Loft';
-// --- REAL VIEW COUNT from MySQL ---
-fetch(`http://localhost:3000/api/stories/${id}/view`,{method:'POST'})
-.then(r=>r.json())
-.then(data=>{
-  // update the views on page to real count
-  st.views = data.views;
-  const vEl = document.querySelector('#realViews');
-  if(vEl) vEl.textContent = data.views;
-}).catch(()=>{});
-
-// --- REAL HEART COUNT ---
-window.addHeart = ()=>{
-  fetch(`http://localhost:3000/api/stories/${id}/heart`,{method:'POST'})
-  .then(r=>r.json())
-  .then(data=>{
-    const hEl = document.querySelector('#realHearts');
-    if(hEl) hEl.textContent = data.hearts;
-  });
+const id = new URLSearchParams(location.search).get('id')||'1';
+let vid = localStorage.getItem('vid'); if(!vid){vid='v_'+Date.now(); localStorage.setItem('vid',vid);}
+async function init(){
+  const stories = {1:{title:"The Letter That Never Came", content:"Full story text here... your full story... And then one day, the letter came — but not from where she expected..."},2:{title:"Midnight at Police Bazaar", content:"Full content..."},3:{title:"The Last Song of Cherrapunji", content:"Full..."},4:{title:"Pine Trees Don't Lie", content:"Full..."},5:{title:"You Again, In Laitumkhrah", content:"Full..."}};
+  document.getElementById('t').innerText = stories[id]?.title || "Story "+id;
+  document.getElementById('c').innerText = stories[id]?.content || "Story content...";
+  // add view
+  const v = await (await fetch(`/api/views/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({visitor_id:vid})})).json();
+  document.getElementById('vc').innerText = v.views;
+  // get likes
+  const l = await (await fetch(`/api/likes/${id}`)).json();
+  document.getElementById('lc').innerText = l.likes||0;
+  loadC();
 }
-document.getElementById('storyRoot').innerHTML=`
-<div class="story-meta">${st.genre} • ${st.readTime} • ${st.date}</div>
-<h1>${st.title}</h1>
-<p style="color:var(--muted)">By ${st.author} • ❤️ ${st.likes||0} likes • 👁️ ${st.views||0} views</p>
-${st.cover?`<img class="story-cover" src="${st.cover}">`:''}
-<div class="story-actions"><button class="action-btn" onclick="like()">❤️ Like (${st.likes||0})</button><button class="action-btn" onclick="navigator.clipboard.writeText(location.href);alert('Link copied!')">↗️ Share</button></div>
-<div class="story-content">${st.content}</div>
-<div style="margin-top:40px;border-top:1px solid var(--line);padding-top:20px"><h3>More stories</h3>${stories.filter(x=>x.id!==st.id).slice(0,2).map(r=>`<div style="padding:12px;border:1px solid var(--line);border-radius:12px;margin:8px 0;cursor:pointer" onclick="localStorage.setItem('loft_current',${r.id});location.href='story.html?id=${r.id}'">${r.title} • ${r.genre}</div>`).join('')}</div>
-`;
-// GET STORY ID FROM URL
-const storyId = new URLSearchParams(window.location.search).get('id') || '1';
-
-// COUNT VIEW AUTOMATICALLY WHEN PAGE OPENS
-fetch(`http://localhost:3000/api/stories/${storyId}/view`).then(r=>r.json()).then(d=>{
-  console.log('View counted:', d.views);
-});
-
-// REAL LIKE FUNCTION - SAVES TO MYSQL
-function like(){
-  fetch(`http://localhost:3000/api/stories/${storyId}/heart`)
-    .then(r=>r.json())
-    .then(d=>{
-      alert(`Liked! ❤️ Total hearts: ${d.hearts}`);
-      location.reload(); // reload to show new heart count
-    });
+async function loadC(){
+  const d = await (await fetch(`/api/comments/${id}`)).json();
+  document.getElementById('list').innerHTML = d.length? d.map(x=>`<p><b>${x.name}:</b> ${x.comment} <small style=color:#999>(${new Date(x.created_at).toLocaleString()})</small></p>`).join('') : "No comments yet - be first!";
 }
-window.addEventListener('scroll',()=>{const h=document.documentElement;const scrolled=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;document.getElementById('progress').style.width=scrolled+'%';});
-</script>
-</body>
-</html>
+async function postC(){
+  const name=document.getElementById('n').value, comment=document.getElementById('m').value;
+  if(!name||!comment) return alert("Fill both");
+  await fetch('/api/comments',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({story_id:id, name, comment})});
+  document.getElementById('m').value=""; loadC();
+}
+async function likeIt(){
+  const r = await (await fetch(`/api/likes/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({visitor_id:vid})})).json();
+  document.getElementById('lc').innerText = r.likes; document.getElementById('likeBtn').innerText = "💗 Liked ("+r.likes+")";
+}
+init();
+</script></body></html>
