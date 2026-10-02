@@ -56,9 +56,5 @@ app.post('/api/like/:id', async (req,res)=>{
 app.get('/', (req,res)=>{
   res.sendFile(path.join(__dirname, 'index.html'));
 });
-
 const PORT = process.env.PORT || 10000;
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
 app.listen(PORT, ()=> console.log('Server running on '+PORT));
