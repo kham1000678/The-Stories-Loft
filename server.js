@@ -1,77 +1,61 @@
-
-
 const express = require('express');
 const mysql = require('mysql2');
+const path = require('path');
 const app = express();
 app.use(express.json());
-app.use(express.static(__dirname));
 
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '2005',
-  database: process.env.DB_NAME || 'stories_loft',
-  port: process.env.DB_PORT? parseInt(process.env.DB_PORT) : 3306
-};
+// Serve all static files
+app.use(express.static(path.join(__dirname)));
 
-if(process.env.DB_HOST){
-  dbConfig.ssl = { rejectUnauthorized: true };
+// --- DB setup (safe, won't crash) ---
+let db=null, dbReady=false;
+try {
+  const config = {
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'Msdian07*',
+    database: process.env.DB_NAME || 'stories_loft',
+    port: process.env.DB_PORT? parseInt(process.env.DB_PORT) : 3306,
+    waitForConnections: true,
+    connectionLimit: 5
+  };
+  if (process.env.DB_HOST &&!process.env.DB_HOST.includes('localhost')) {
+    config.ssl = { rejectUnauthorized: true };
+  }
+  db = mysql.createPool(config).promise();
+  db.query('SELECT 1').then(()=>{ dbReady=true; console.log('DB Ready!'); }).catch(e=>{ console.log('DB fail (site still runs):', e.message); db=null; dbReady=false; });
+} catch(e){ console.log('DB init fail:', e.message); }
+
+async function safeQuery(sql, params, fallback){
+  if (!dbReady ||!db) return fallback;
+  try { const [rows]=await db.query(sql, params); return rows; }
+  catch(e){ console.log('Query fail:', e.message); return fallback; }
 }
 
-let db;
-let dbReady = false;
-
-try{
-  db = mysql.createConnection(dbConfig);
-  db.connect(err => {
-    if(err) console.log("DB fail (site still runs):", err.message);
-    else { console.log("DB Ready!"); dbReady = true; }
-  });
-} catch(e){ console.log("DB init fail", e.message); }
-
-function safeQuery(sql, params, cb){
-  if(!db ||!dbReady){ return cb(null, []); }
-  db.query(sql, params, (err, rows)=>{
-    if(err){ console.log("DB Error:", err.message); return cb(null, []); }
-    cb(null, rows);
-  });
-}
-
-app.get('/api/live', (req,res)=>{
-  safeQuery("SELECT story_id, COUNT(*) as views FROM views_log GROUP BY story_id", [], (e, viewRows)=>{
-    safeQuery("SELECT story_id, COUNT(*) as hearts FROM likes GROUP BY story_id", [], (e2, likeRows)=>{
-      let data = {};
-      (viewRows||[]).forEach(r=>{ data[r.story_id] = data[r.story_id]||{views:0, hearts:0}; data[r.story_id].views = r.views; });
-      (likeRows||[]).forEach(r=>{ data[r.story_id] = data[r.story_id]||{views:0, hearts:0}; data[r.story_id].hearts = r.hearts; });
-      res.json(data);
-    });
-  });
+// --- API routes ---
+app.get('/api/stories', async (req,res)=>{
+  const stories = await safeQuery('SELECT * FROM stories ORDER BY id DESC', [], []);
+  res.json(stories);
+});
+app.get('/api/live', async (req,res)=>{
+  const s = await safeQuery('SELECT COUNT(*) as c FROM stories', [], [{c:0}]);
+  const v = await safeQuery('SELECT SUM(views) as s FROM stories', [], [{s:0}]);
+  const l = await safeQuery('SELECT COUNT(*) as c FROM hearts', [], [{c:0}]);
+  res.json({ stories: s[0].c||0, reads: v[0].s||0, likes: l[0].c||0 });
+});
+app.post('/api/view/:id', async (req,res)=>{
+  await safeQuery('UPDATE stories SET views = views + 1 WHERE id =?', [req.params.id], []);
+  res.json({ok:true});
+});
+app.post('/api/like/:id', async (req,res)=>{
+  await safeQuery('INSERT IGNORE INTO hearts (story_id, ip) VALUES (?,?)', [req.params.id, req.ip], []);
+  res.json({ok:true});
 });
 
-app.get('/api/views/:id', (req,res)=>{
-  safeQuery("SELECT COUNT(*) as total FROM views_log WHERE story_id=?", [req.params.id], (e,r)=> res.json({views: r[0]?.total||0}));
-});
-app.post('/api/views/:id', (req,res)=>{
-  safeQuery("INSERT INTO views_log (story_id, visitor_id) VALUES (?,?)", [req.params.id, req.body.visitor_id||'anon'], ()=>{});
-  safeQuery("SELECT COUNT(*) as total FROM views_log WHERE story_id=?", [req.params.id], (e,r)=> res.json({views: r[0]?.total||0}));
+// --- IMPORTANT: Homepage route ---
+app.get('/', (req,res)=>{
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.get('/api/likes/:id', (req,res)=>{
-  safeQuery("SELECT COUNT(*) as total FROM likes WHERE story_id=?", [req.params.id], (e,r)=> res.json({likes: r[0]?.total||0}));
-});
-app.post('/api/likes/:id', (req,res)=>{
-  safeQuery("INSERT IGNORE INTO likes (story_id, visitor_id) VALUES (?,?)", [req.params.id, req.body.visitor_id||'anon'], ()=>{
-    safeQuery("SELECT COUNT(*) as total FROM likes WHERE story_id=?", [req.params.id], (e,r)=> res.json({likes: r[0]?.total||0, hearts: r[0]?.total||0}));
-  });
-});
-
-app.get('/api/comments/:id', (req,res)=>{
-  safeQuery("SELECT * FROM comments WHERE story_id=? ORDER BY id DESC", [req.params.id], (e,r)=> res.json(r||[]));
-});
-app.post('/api/comments', (req,res)=>{
-  const {story_id, name, comment}=req.body;
-  safeQuery("INSERT INTO comments (story_id, name, comment) VALUES (?,?,?)", [story_id, name, comment], ()=> res.json({success:true}));
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, ()=> console.log("Server running on "+PORT));
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, ()=> console.log('Server running on '+PORT));
