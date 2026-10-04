@@ -1,18 +1,52 @@
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Admin - The Stories Loft</title>
-<style>body{font-family:Arial;background:#0f172a;color:white;padding:20px}input,textarea{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:none}textarea{height:300px}button{background:#38bdf8;color:#000;padding:12px 20px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;width:100%}.story{background:#1e293b;padding:10px;margin:10px 0;border-radius:8px;display:flex;justify-content:space-between}</style>
+<style>body{font-family:Arial;background:#0f172a;color:white;padding:20px}input,textarea{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:none}textarea{height:250px}button{background:#38bdf8;color:#000;padding:12px 20px;border:none;border-radius:8px;font-weight:bold;cursor:pointer} .card{background:#1e293b;padding:12px;margin:12px 0;border-radius:10px} .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px} .badge{background:#334155;padding:4px 8px;border-radius:6px;font-size:13px}</style>
 </head><body>
 <h1>📚 The Stories Loft - Dashboard</h1>
-<input id="key" placeholder="Admin Key - type khamkor123 here" value="khamkor123">
+<input id="key" placeholder="Admin Key" value="khamkor123">
 <input id="title" placeholder="Story Title">
-<input id="image" placeholder="Image URL - https://...">
-<textarea id="content" placeholder="Write your FULL story here... (5000 words allowed)"></textarea>
-<button onclick="post()">Post Story</button>
+<input id="image" placeholder="Image URL https://...">
+<textarea id="content" placeholder="Write FULL story..."></textarea>
+<button onclick="post()" style="width:100%">Post Story</button>
 <p id="msg"></p>
-<hr><h3>Views Analytics</h3><div id="list">No stories yet</div>
+<hr>
+<h3>📊 Views / Likes / Comments Analytics</h3>
+<div id="list">Loading...</div>
+
 <script>
-async function load(){let r=await fetch('/api/stories');let s=await r.json();let h='';s.forEach(x=>{h+=`<div class=story><span>${x.title} - ${x.views||0} views</span><button onclick="del('${x.id}')">Delete</button></div>`});document.getElementById('list').innerHTML=h||'No stories yet';}
-async function post(){let t=title.value,c=content.value,img=image.value,k=key.value; if(!t||!c){msg.innerText='Need title & content';return} let res=await fetch('/api/stories',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':k},body:JSON.stringify({title:t,content:c,image:img})}); let d=await res.json(); if(res.ok){msg.innerText='✅ Posted!'; title.value='';content.value='';image.value=''; load();} else{msg.innerText='❌ Error: '+(d.error||'failed')}}
-async function del(id){if(!confirm('Delete?'))return; await fetch('/api/stories/'+id,{method:'DELETE',headers:{'x-admin-key':key.value}}); load();}
+async function load(){
+ let r=await fetch('/api/stories');
+ let stories=await r.json();
+ let html='';
+ for(let x of stories){
+   let cr=await fetch('/api/stories/'+x.id+'/comments');
+   let comments=await cr.json();
+   html+=`<div class=card>
+    <b>${x.title}</b>
+    <div class=row>
+      <span class=badge>👁️ ${x.views||0} Views</span>
+      <span class=badge>❤️ ${x.likes||0} Likes</span>
+      <span class=badge>💬 ${comments.length||0} Comments</span>
+    </div>
+    <div class=row>
+      <button onclick="window.open('/story.html?id=${x.id}','_blank')">View</button>
+      <button onclick="del('${x.id}')" style="background:#ef4444;color:white">Delete</button>
+    </div>
+    ${comments.length ? `<div style="margin-top:8px;font-size:12px">${comments.slice(0,2).map(c=>`• ${c.name}: ${c.text}`).join('<br>')}</div>` : ''}
+   </div>`;
+ }
+ document.getElementById('list').innerHTML=html||'No stories yet';
+}
+
+async function post(){
+ let t=title.value,c=content.value,img=image.value,k=key.value;
+ if(!t||!c){msg.innerText='Need title & content';return}
+ let res=await fetch('/api/stories',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':k},body:JSON.stringify({title:t,content:c,image:img})});
+ let d=await res.json();
+ if(res.ok){msg.innerText='✅ Posted!'; title.value='';content.value='';image.value=''; load();}
+ else{msg.innerText='❌ '+(d.error||'failed')}
+}
+async function del(id){ if(!confirm('Delete?'))return; await fetch('/api/stories/'+id,{method:'DELETE',headers:{'x-admin-key':key.value}}); load(); }
 load();
-</script></body></html>
+</script>
+</body></html>
