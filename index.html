@@ -82,7 +82,7 @@ header{position:fixed;top:0;width:100%;display:flex;justify-content:space-betwee
 <div class="hero">
 <h1>In The Beginning,<br>There Was A Story.<br><i>And The Story Continues.</i></h1>
 <p>Wherever there's a tale, there's a change. We believe. Welcome to my loft of stories.</p>
-<div class="btn" onclick="document.getElementById('stories').scrollIntoView({behavior:'smooth'})">Read More...</div>
+<div class="btn" onclick="openPage('readMorePage')">Read More...</div>
 </div>
 <div class="bg2"></div>
 <div class="stories-wrap" id="stories">
@@ -117,11 +117,27 @@ header{position:fixed;top:0;width:100%;display:flex;justify-content:space-betwee
 </div>
 
 <!-- ABOUT / SERVICE / CONTACT PAGES -->
-<div id="aboutPage" class="page">
-<button class="back" onclick="closePage()" style="background:#fff">← Back</button>
-<h1 style="margin-top:20px">About Me</h1>
-<p>Hi, I'm Khamkor. I write stories from my little loft in Guwahati. This is where cozy corners meet timeless tales. I believe every tale brings a change.</p>
-<p>Change your background image here — edit this text in index.html</p>
+<div id="aboutPage" class="page" style="padding:0;background:#f5f1ea;color:#111">
+<button class="back" onclick="closePage()" style="background:#fff;margin:80px 24px 0">← Back</button>
+<div style="max-width:700px;margin:20px auto;padding:0 24px 60px">
+<div style="width:110px;height:110px;border-radius:50%;background:url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300') center/cover;margin:20px 0"></div>
+<h1 style="font-family:'Playfair Display',serif;font-size:36px;color:#0e1c2e">About Me</h1>
+<p style="color:#d4a574;letter-spacing:2px;font-size:11px;margin-top:8px;font-weight:700">KHAMKOR SYIEMLIEH • GUWAHATI</p>
+<div style="margin-top:22px;line-height:1.9;color:#333;font-size:15px;white-space:pre-wrap">
+My name is K1000. I am from Meghalaya, now living in Guwahati.
+
+I never planned to be a writer. I just had too many feelings and not enough people to tell them to. So I started keeping them here — in this loft.
+
+This website is my diary, my room, my safe corner. Every story here is true in some way. Some are memories of home, some are about people I loved, some are about nights when I couldn't sleep.
+
+I believe wherever there's a tale, there's a change. If you read one of my stories and you feel something — even a little — then my story has done its work.
+
+Thank you for coming to my loft. You are always welcome here.
+
+Cozy corners. Timeless tales.
+— K1000
+</div>
+</div>
 </div>
 
 <div id="servicePage" class="page">
@@ -134,11 +150,11 @@ header{position:fixed;top:0;width:100%;display:flex;justify-content:space-betwee
 <button class="back" onclick="closePage()" style="background:#fff">← Back</button>
 <h1 style="margin-top:20px">Contact</h1>
 <p>Tap to reach me:</p>
-<a class="social-btn" href="https://instagram.com/YOUR_USERNAME" target="_blank">
+<a class="social-btn" href="https://instagram.com/kham__123" target="_blank">
 <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png"> Instagram — @kham__123
 </a>
-<a class="social-btn" href="https://facebook.com/YOUR_USERNAME" target="_blank">
-<img src="https://cdn-icons-png.flaticon.com/512/733/733547.png"> Facebook — Your FB Page
+<a class="social-btn" href="https://facebook.com/khamkor" target="_blank">
+<img src="https://cdn-icons-png.flaticon.com/512/733/733547.png"> Facebook — Khamkor
 </a>
 <p style="font-size:12px;margin-top:20px">Replace YOUR_USERNAME above with your real Instagram and Facebook links in index.html</p>
 </div>
@@ -197,5 +213,28 @@ async function postComment(){
 }
 load();
 </script>
+<div id="readMorePage" class="page" style="padding:0;background:#f5f1ea;color:#111">
+<button class="back" onclick="closePage()" style="background:#fff;margin:80px 24px 0">← Back</button>
+<div style="max-width:700px;margin:20px auto;padding:0 24px 60px">
+<h1 style="font-family:'Playfair Display',serif;font-size:38px;color:#0e1c2e">In The Beginning,<br>There Was A Story.</h1>
+<div style="margin-top:22px;line-height:1.9;color:#333;font-size:16px;white-space:pre-wrap">
+Wherever there's a tale, there's a change. We believe.
+
+Welcome to The Stories Loft.
+
+This is my long page with many backgrounds — mountains, night sky, old books — because every story deserves a different feeling.
+
+Below you will find all my stories. When you open a story:
+- Real view counting — every reader is counted
+- ❤️ Like button — tap and everyone sees it
+- Comments — leave your thought, others will read it
+
+Thank you for being here. And the story continues...
+
+— K1000, Gauhati
+</div>
+<button onclick="closePage();document.getElementById('stories').scrollIntoView({behavior:'smooth'})" style="margin-top:28px;background:#0e1c2e;color:#fff;border:none;border-radius:30px;padding:12px 24px;font-weight:700;cursor:pointer">↓ Start Reading</button>
+</div>
+</div>
 </body>
 </html>
