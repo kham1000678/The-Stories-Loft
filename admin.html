@@ -1,63 +1,44 @@
 <!DOCTYPE html>
-<html>
-<head>
-<title>Admin - The Stories Loft</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-body{font-family:system-ui;background:#0f172a;color:white;padding:20px}
-.box{background:#1e293b;padding:20px;border-radius:16px;display:inline-block;margin:8px;min-width:130px;text-align:center;border:1px solid #334155}
-.box h2{font-size:36px;margin:0;color:#38bdf8}
-.chart-box{background:#1e293b;padding:20px;border-radius:16px;margin-top:20px;border:1px solid #334155}
-table{width:100%;margin-top:20px;border-collapse:collapse;background:#1e293b;border-radius:12px;overflow:hidden}
-th,td{padding:14px;text-align:left;border-bottom:1px solid #334155}
-</style>
-</head>
-<body>
-<h1>📊 The Stories Loft - Dashboard</h1>
-<div id="stats">Loading...</div>
-
-<div class="chart-box">
-<h3>📈 Views Analytics</h3>
-<canvas id="myChart" height="120"></canvas>
-</div>
-
-<table><tr><th>Story ID</th><th>Views</th><th>Hearts</th><th>Popularity</th></tr><tbody id="rows"></tbody></table>
-
+<html><head><title>Admin - The Stories Loft</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{font-family:system-ui;background:#0f172a;color:white;padding:20px}input,textarea{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:0}textarea{height:250px}button{background:#38bdf8;color:black;padding:12px 20px;border:0;border-radius:8px;font-weight:bold;cursor:pointer;width:100%}#msg{margin:10px 0}</style>
+</head><body>
+<h1>📚 The Stories Loft - Dashboard</h1>
+<div id="msg"></div>
+<input id="title" placeholder="Story Title">
+<textarea id="content" placeholder="Write your story here..."></textarea>
+<button onclick="post()">Post Story</button>
+<hr>
+<h3>Views Analytics</h3>
+<div id="list">Loading stories...</div>
 <script>
-let chart;
+const PASS = "Msdian07*";
 async function load(){
-  const r = await fetch('http://localhost:3000/api/dashboard');
-  const d = await r.json();
-  
-  document.getElementById('stats').innerHTML = `
-    <div class="box"><h2>${d.visitors_today}</h2><p>Visitors Today</p></div>
-    <div class="box"><h2>${d.total_views}</h2><p>Total Views</p></div>
-    <div class="box"><h2>${d.total_likes}</h2><p>Total Likes</p></div>
-    <div class="box"><h2>${d.stories.length}</h2><p>Stories</p></div>
-  `;
-  
-  document.getElementById('rows').innerHTML = d.stories.map(s=>{
-    const bar = '█'.repeat(Math.min(s.views, 10));
-    return `<tr><td>${s.id}</td><td>${s.views}</td><td>${s.hearts}</td><td style="color:#38bdf8">${bar} ${s.views>5?'🔥':''}</td></tr>`;
-  }).join('');
-
-  // CHART
-  const ctx = document.getElementById('myChart').getContext('2d');
-  if(chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: d.stories.map(s=>'Story '+s.id),
-      datasets: [
-        {label:'Views', data:d.stories.map(s=>s.views), backgroundColor:'#38bdf8'},
-        {label:'Hearts', data:d.stories.map(s=>s.hearts), backgroundColor:'#fb7185'}
-      ]
-    },
-    options:{responsive:true, plugins:{legend:{labels:{color:'white'}}}, scales:{x:{ticks:{color:'white'}}, y:{ticks:{color:'white'}}}}
-  });
+ try{
+  let r = await fetch('/api/stories');
+  let data = await r.json();
+  document.getElementById('list').innerHTML = data.map(s=>`<div style="padding:8px;border-bottom:1px solid #334155"><b>${s.id}</b> - ${s.title} - 👁️${s.views||0} ❤️${s.hearts||0} <button onclick="del(${s.id})" style="width:auto;background:red;color:white;padding:4px 8px">Delete</button></div>`).join('') || 'No stories yet';
+ }catch(e){ document.getElementById('list').innerHTML='Failed to load - but you can still post!'; }
+}
+async function post(){
+ let title=document.getElementById('title').value;
+ let content=document.getElementById('content').value;
+ if(!title||!content) return alert('Fill both');
+ document.getElementById('msg').innerText='Posting...';
+ let r = await fetch('/api/stories',{
+  method:'POST',
+  headers:{'Content-Type':'application/json','x-admin-password':PASS},
+  body:JSON.stringify({title,content})
+ });
+ let d = await r.json();
+ if(r.ok){ document.getElementById('msg').innerText='✅ Posted! ID: '+d.id; document.getElementById('title').value=''; document.getElementById('content').value=''; load(); }
+ else document.getElementById('msg').innerText='❌ Error: '+(d.error||r.status);
+}
+async function del(id){
+ if(!confirm('Delete '+id+'?')) return;
+ await fetch('/api/stories/'+id,{method:'DELETE',headers:{'x-admin-password':PASS}});
+ load();
 }
 load();
-setInterval(load, 3000);
 </script>
-</body>
-</html>
+</body></html>
