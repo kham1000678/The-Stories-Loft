@@ -23,9 +23,14 @@ try {
     config.ssl = { rejectUnauthorized: false };
   }
   db = mysql.createPool(config).promise();
-  db.query('SELECT 1').then(()=>{ dbReady=true; console.log('DB Ready!'); }).catch(e=>{ console.log('DB fail (site still runs):', e.message); db=null; dbReady=false; });
-  db.query(`CREATE TABLE IF NOT EXISTS stories (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(500), content LONGTEXT, slug VARCHAR(500), views INT DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-db.query(`CREATE TABLE IF NOT EXISTS hearts (id INT AUTO_INCREMENT PRIMARY KEY, story_id INT, ip VARCHAR(100), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY unique_like (story_id, ip))`);
+db.query('SELECT 1').then(()=>{ dbReady=true; console.log('DB Ready!'); }).catch(e=>{ console.log('DB fail (site still running):', e.message); });
+(async () => {
+  try {
+    await db.query(`CREATE TABLE IF NOT EXISTS stories (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(500), content LONGTEXT, slug VARCHAR(500), views INT DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+    await db.query(`CREATE TABLE IF NOT EXISTS hearts (id INT AUTO_INCREMENT PRIMARY KEY, story_id INT, ip VARCHAR(100), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY unique_like (story_id, ip))`);
+    console.log('Tables ensured');
+  } catch(e){ console.log('Table create error', e.message); }
+})();
 } catch(e){ console.log('DB init fail:', e.message); }
 
 async function safeQuery(sql, params, fallback){
