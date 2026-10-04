@@ -51,6 +51,19 @@ app.post('/api/like/:id', async (req,res)=>{
   await safeQuery('INSERT IGNORE INTO hearts (story_id, ip) VALUES (?,?)', [req.params.id, req.ip], []);
   res.json({ok:true});
 });
+// --- CREATE story (missing!) ---
+app.post('/api/stories', async (req,res)=>{
+  const { title, content, slug } = req.body;
+  if(!title || !content) return res.status(400).json({error:'missing title/content'});
+  const newSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '-' + Date.now();
+  const result = await safeQuery(
+    'INSERT INTO stories (title, content, slug, views) VALUES (?,?,?,0)',
+    [title, content, newSlug],
+    null
+  );
+  if(!result) return res.status(500).json({error:'db insert fail'});
+  res.json({ok:true, id: result.insertId});
+});
 
 // --- IMPORTANT: Homepage route ---
 app.get('/', (req,res)=>{
