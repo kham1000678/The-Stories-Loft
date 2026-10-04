@@ -1,87 +1,70 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const cors = require('cors');
+require('dotenv').config();
+
 const app = express();
+app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(__dirname));
+const DATA_FILE = path.join(__dirname, 'stories.json');
 
-let DB_FILE = './stories.json';
-if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, '[]');
+function readStories(){
+try{
+if(!fs.existsSync(DATA_FILE)) return [];
+return JSON.parse(fs.readFileSync(DATA_FILE,'utf8'));
+}catch(e){return []}
+}
+function saveStories(stories){
+fs.writeFileSync(DATA_FILE, JSON.stringify(stories,null,2));
+}
 
-function readDB(){ return JSON.parse(fs.readFileSync(DB_FILE)); }
-function saveDB(d){ fs.writeFileSync(DB_FILE, JSON.stringify(d, null, 2)); }
-
-// GET all stories
 app.get('/api/stories', (req,res)=>{
-  let db = readDB();
-  res.json(db.sort((a,b)=>b.id-a.id));
+res.json(readStories());
 });
 
-// GET one story
-app.get('/api/stories/:id', (req,res)=>{
-  let db = readDB();
-  let s = db.find(x=>x.id==req.params.id);
-  if(!s) return res.status(404).json({});
-  res.json(s);
-});
-
-// POST new story (from admin)
 app.post('/api/stories', (req,res)=>{
-  let db = readDB();
-  let newStory = {
-    id: Date.now(),
-    title: req.body.title,
-    content: req.body.content,
-    image: req.body.image || '',
-    views: 0,
-    hearts: 0,
-    comments: [],
-    createdAt: new Date().toISOString()
-  };
-  db.push(newStory);
-  saveDB(db);
-  res.json(newStory);
+if(req.body.adminKey !== process.env.ADMIN_KEY) return res.status(401).json({error:'Wrong admin key - use khamkor123'});
+const stories = readStories();
+const newStory = {
+_id: Date.now().toString(),
+title: req.body.title,
+content: req.body.content,
+image: req.body.image || 'https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=800',
+views: 0,
+likes: 0,
+comments: [],
+createdAt: new Date()
+};
+stories.unshift(newStory);
+saveStories(stories);
+res.json(newStory);
 });
 
-// VIEW count - real
 app.post('/api/stories/:id/view', (req,res)=>{
-  let db = readDB();
-  let s = db.find(x=>x.id==req.params.id);
-  if(s){ s.views = (s.views||0)+1; saveDB(db); }
-  res.json(s);
+const stories = readStories();
+const s = stories.find(x=>x._id==req.params.id);
+if(s){s.views++; saveStories(stories);}
+res.json(s);
 });
 
-// LIKE / HEART - real
-app.post('/api/stories/:id/heart', (req,res)=>{
-  let db = readDB();
-  let s = db.find(x=>x.id==req.params.id);
-  if(s){ s.hearts = (s.hearts||0)+1; saveDB(db); }
-  res.json(s);
+app.post('/api/stories/:id/like', (req,res)=>{
+const stories = readStories();
+const s = stories.find(x=>x._id==req.params.id);
+if(s){s.likes++; saveStories(stories);}
+res.json(s);
 });
 
-// GET comments
-app.get('/api/stories/:id/comments', (req,res)=>{
-  let db = readDB();
-  let s = db.find(x=>x.id==req.params.id);
-  res.json(s?.comments || []);
-});
-
-// POST comment - everyone sees
-app.post('/api/stories/:id/comments', (req,res)=>{
-  let db = readDB();
-  let s = db.find(x=>x.id==req.params.id);
-  if(!s) return res.status(404).json({});
-  let c = {
-    id: Date.now(),
-    name: req.body.name || 'Reader',
-    text: req.body.text,
-    time: new Date().toLocaleString()
-  };
-  s.comments = s.comments || [];
-  s.comments.push(c);
-  saveDB(db);
-  res.json(c);
+app.post('/api/stories/:id/comment', (req,res)=>{
+const stories = readStories();
+const s = stories.find(x=>x._id==req.params.id);
+if(s){
+s.comments.push({name:req.body.name, text:req.body.text, date: new Date()});
+saveStories(stories);
+}
+res.json(s);
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, ()=>console.log('Running on '+PORT));
+app.listen(PORT, ()=>console.log('Server running on '+PORT+' - No MongoDB needed!'));
