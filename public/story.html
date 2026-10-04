@@ -1,44 +1,58 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<style>body{font-family:Georgia;max-width:650px;margin:40px auto;padding:20px;background:#f8f6f1;line-height:1.8} #box{background:white;padding:30px;border-radius:12px} button{padding:8px 14px;border-radius:20px;border:1px solid #ddd;background:white;cursor:pointer} #comments{margin-top:30px;background:white;padding:20px;border-radius:12px} input,textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;margin:5px 0;box-sizing:border-box}</style>
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Story - The Stories Loft</title>
+<style>
+body{font-family:Georgia;background:#f8fafc;color:#1e293b;padding:20px;max-width:700px;margin:auto}
+img{width:100%;border-radius:12px;margin:15px 0}
+.card{background:white;padding:20px;border-radius:12px;box-shadow:0 2px 10px #0001}
+.btn{padding:8px 16px;border:none;border-radius:20px;cursor:pointer;margin-right:8px;background:#e2e8f0}
+.btn.liked{background:#fecdd3}
+input,textarea{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #cbd5e1}
+.comment{background:#f1f5f9;padding:10px;border-radius:8px;margin:8px 0}
+</style>
 </head><body>
-<a href="/">← Back to Home</a>
-<div id="box"><h1 id="t">Loading...</h1><p id="c"></p>
-<div style="display:flex;gap:10px;margin:15px 0;">
-<button id="likeBtn" onclick="likeIt()">💗 Like (<span id="lc">0</span>)</button>
-<span>👁️ <b id="vc">0</b> views</span>
-<button onclick="navigator.clipboard.writeText(location.href); alert('Link copied!')">🔗 Share</button>
-</div></div>
-<div id="comments"><h3>Comments</h3><div id="list"></div>
-<input id="n" placeholder="Your name"><textarea id="m" placeholder="Write comment"></textarea>
-<button onclick="postC()" style="background:black;color:white;">Post Comment</button></div>
+<a href="/">← Back</a>
+<div id="story" class="card">Loading...</div>
+<div class="card" style="margin-top:20px">
+<h3>Comments</h3>
+<div id="comments">Loading comments...</div>
+<div style="margin-top:15px">
+<input id="cname" placeholder="Your name (e.g. k1000)">
+<textarea id="ctext" placeholder="Write your thought..."></textarea>
+<button onclick="postComment()" style="background:#1e3a8a;color:white;padding:10px 20px;border:none;border-radius:8px;cursor:pointer">Post Comment</button>
+</div>
+</div>
+
 <script>
-const id = new URLSearchParams(location.search).get('id')||'1';
-let vid = localStorage.getItem('vid'); if(!vid){vid='v_'+Date.now(); localStorage.setItem('vid',vid);}
-async function init(){
-  const stories = {1:{title:"The Letter That Never Came", content:"Full story text here... your full story... And then one day, the letter came — but not from where she expected..."},2:{title:"Midnight at Police Bazaar", content:"Full content..."},3:{title:"The Last Song of Cherrapunji", content:"Full..."},4:{title:"Pine Trees Don't Lie", content:"Full..."},5:{title:"You Again, In Laitumkhrah", content:"Full..."}};
-  document.getElementById('t').innerText = stories[id]?.title || "Story "+id;
-  document.getElementById('c').innerText = stories[id]?.content || "Story content...";
-  // add view
-  const v = await (await fetch(`/api/views/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({visitor_id:vid})})).json();
-  document.getElementById('vc').innerText = v.views;
-  // get likes
-  const l = await (await fetch(`/api/likes/${id}`)).json();
-  document.getElementById('lc').innerText = l.likes||0;
-  loadC();
+const id=new URLSearchParams(location.search).get('id');
+async function loadStory(){
+ let r=await fetch('/api/stories/'+id); let s=await r.json();
+ document.getElementById('story').innerHTML=`<h1>${s.title}</h1><p>👁️ ${s.views||0} views | <span id="likeCount">${s.likes||0}</span> likes</p>
+ ${s.image?`<img src="${s.image}">`:''}
+ <div style="white-space:pre-wrap;line-height:1.7">${s.content}</div>
+ <div style="margin-top:15px"><button class="btn" id="likeBtn" onclick="like()">❤️ Like</button> <button class="btn" onclick="share()">🔗 Share</button></div>`;
+ fetch('/api/stories/'+id+'/view',{method:'POST'});
 }
-async function loadC(){
-  const d = await (await fetch(`/api/comments/${id}`)).json();
-  document.getElementById('list').innerHTML = d.length? d.map(x=>`<p><b>${x.name}:</b> ${x.comment} <small style=color:#999>(${new Date(x.created_at).toLocaleString()})</small></p>`).join('') : "No comments yet - be first!";
+async function loadComments(){
+ let r=await fetch('/api/stories/'+id+'/comments'); let list=await r.json();
+ let div=document.getElementById('comments');
+ if(!list.length){ div.innerHTML='No comments yet. Be first!'; return; }
+ div.innerHTML=list.map(c=>`<div class=comment><b>${c.name||'Anonymous'}</b><br>${c.text}<br><small style="color:#64748b">${new Date(c.at).toLocaleString()}</small></div>`).join('');
 }
-async function postC(){
-  const name=document.getElementById('n').value, comment=document.getElementById('m').value;
-  if(!name||!comment) return alert("Fill both");
-  await fetch('/api/comments',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({story_id:id, name, comment})});
-  document.getElementById('m').value=""; loadC();
+async function like(){
+ let r=await fetch('/api/stories/'+id+'/like',{method:'POST'}); let d=await r.json();
+ document.getElementById('likeCount').innerText=d.likes; document.getElementById('likeBtn').classList.add('liked');
 }
-async function likeIt(){
-  const r = await (await fetch(`/api/likes/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({visitor_id:vid})})).json();
-  document.getElementById('lc').innerText = r.likes; document.getElementById('likeBtn').innerText = "💗 Liked ("+r.likes+")";
+function share(){ navigator.clipboard.writeText(location.href); alert('Link copied!'); }
+async function postComment(){
+ let name=document.getElementById('cname').value.trim();
+ let text=document.getElementById('ctext').value.trim();
+ if(!name){ alert('Please enter your name like k1000'); return; }
+ if(!text){ alert('Please write your thought!'); return; }
+ let r=await fetch('/api/stories/'+id+'/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,text})});
+ if(r.ok){ document.getElementById('ctext').value=''; loadComments(); }
+ else{ alert('Failed to post'); }
 }
-init();
-</script></body></html>
+loadStory(); loadComments();
+</script>
+</body></html>
