@@ -66,7 +66,7 @@ app.get('/api/stories/:id', async (req,res)=>{
 });
 
 app.post('/api/stories', async (req,res)=>{
- if(req.headers['x-admin-key']!=='k1000') return res.status(403).json({error:'Wrong key'});
+ if(req.headers['x-admin-key']!=='khamkor123') return res.status(403).json({error:'Wrong key'});
  const id=Date.now().toString();
  const story={id,title:req.body.title,content:req.body.content,image:req.body.image||'',views:0,likes:0,created_at:new Date().toISOString()};
   try{
@@ -107,7 +107,7 @@ app.post('/api/stories/:id/comments', async (req,res)=>{
 });
 
 app.delete('/api/stories/:id', async (req,res)=>{
-  if(req.headers['x-admin-key']!=='k1000') return res.status(403).json({error:'Wrong key'});
+  if(req.headers['x-admin-key']!=='khamkor123') return res.status(403).json({error:'Wrong key'});
   try{
     await pool.query('DELETE FROM stories WHERE id=?', [req.params.id]);
     await pool.query('DELETE FROM comments WHERE story_id=?', [req.params.id]);
