@@ -38,6 +38,9 @@ async function connectDB(){
     try{ await pool.query(`ALTER TABLE stories ADD COLUMN image TEXT`); }catch(e){}
   try{ await pool.query(`ALTER TABLE stories ADD COLUMN views INT DEFAULT 0`); }catch(e){}
   try{ await pool.query(`ALTER TABLE stories ADD COLUMN likes INT DEFAULT 0`); }catch(e){}
+  try{ await pool.query(`ALTER TABLE stories MODIFY COLUMN id VARCHAR(100)`); }catch(e){}
+  try{ await pool.query(`ALTER TABLE comments MODIFY COLUMN id VARCHAR(100)`); }catch(e){}
+  try{ await pool.query(`ALTER TABLE comments MODIFY COLUMN story_id VARCHAR(100)`); }catch(e){}
  }catch(e){
   console.log('⚠️ DB Connection Failed:', e.message);
   console.log('Using file fallback, site will still work');
