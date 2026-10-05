@@ -35,6 +35,9 @@ async function connectDB(){
 
   await pool.query(`CREATE TABLE IF NOT EXISTS stories (id VARCHAR(50) PRIMARY KEY, title TEXT, content LONGTEXT, image TEXT, views INT DEFAULT 0, likes INT DEFAULT 0, createdAt DATETIME DEFAULT CURRENT_TIMESTAMP)`);
   await pool.query(`CREATE TABLE IF NOT EXISTS comments (id VARCHAR(50) PRIMARY KEY, story_id VARCHAR(50), name VARCHAR(100), text TEXT, at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
+    try{ await pool.query(`ALTER TABLE stories ADD COLUMN image TEXT`); }catch(e){}
+  try{ await pool.query(`ALTER TABLE stories ADD COLUMN views INT DEFAULT 0`); }catch(e){}
+  try{ await pool.query(`ALTER TABLE stories ADD COLUMN likes INT DEFAULT 0`); }catch(e){}
  }catch(e){
   console.log('⚠️ DB Connection Failed:', e.message);
   console.log('Using file fallback, site will still work');
