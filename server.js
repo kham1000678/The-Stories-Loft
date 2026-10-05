@@ -15,13 +15,13 @@ async function connectDB(){
   const mysql = require('mysql2/promise');
   if(process.env.MYSQL_URL){
     pool = mysql.createPool(process.env.MYSQL_URL);
-  } else if(process.env.MYSQLHOST){
+    } else if(process.env.MYSQLHOST || process.env.DB_HOST){
     pool = mysql.createPool({
-      host: process.env.MYSQLHOST,
-      user: process.env.MYSQLUSER,
-      password: process.env.MYSQLPASSWORD,
-      database: process.env.MYSQLDATABASE,
-      port: process.env.MYSQLPORT,
+      host: process.env.MYSQLHOST || process.env.DB_HOST,
+      user: process.env.MYSQLUSER || process.env.DB_USER,
+      password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
+      database: process.env.MYSQLDATABASE || process.env.DB_NAME,
+      port: process.env.MYSQLPORT || process.env.DB_PORT,
       waitForConnections: true,
       connectionLimit: 5
     });
