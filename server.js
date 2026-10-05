@@ -33,14 +33,14 @@ async function connectDB(){
   useDB = true;
   console.log('✅ Railway MySQL Connected!');
 
-  await pool.query(`CREATE TABLE IF NOT EXISTS stories (id VARCHAR(50) PRIMARY KEY, title TEXT, content LONGTEXT, image TEXT, views INT DEFAULT 0, likes INT DEFAULT 0, createdAt DATETIME DEFAULT CURRENT_TIMESTAMP)`);
-  await pool.query(`CREATE TABLE IF NOT EXISTS comments (id VARCHAR(50) PRIMARY KEY, story_id VARCHAR(50), name VARCHAR(100), text TEXT, at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
-    try{ await pool.query(`ALTER TABLE stories ADD COLUMN image TEXT`); }catch(e){}
+   await pool.query(`CREATE TABLE IF NOT EXISTS stories (id VARCHAR(100) PRIMARY KEY, title TEXT, content LONGTEXT, image TEXT, views INT DEFAULT 0, likes INT DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS comments (id VARCHAR(100) PRIMARY KEY, story_id VARCHAR(100), name TEXT, text TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
   try{ await pool.query(`ALTER TABLE stories ADD COLUMN views INT DEFAULT 0`); }catch(e){}
   try{ await pool.query(`ALTER TABLE stories ADD COLUMN likes INT DEFAULT 0`); }catch(e){}
   try{ await pool.query(`ALTER TABLE stories MODIFY COLUMN id VARCHAR(100)`); }catch(e){}
   try{ await pool.query(`ALTER TABLE comments MODIFY COLUMN id VARCHAR(100)`); }catch(e){}
   try{ await pool.query(`ALTER TABLE comments MODIFY COLUMN story_id VARCHAR(100)`); }catch(e){}
+    try{ await pool.query(`ALTER TABLE stories ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`); }catch(e){}
  }catch(e){
   console.log('⚠️ DB Connection Failed:', e.message);
   console.log('Using file fallback, site will still work');
@@ -56,10 +56,13 @@ try{ fileStories = JSON.parse(fs.readFileSync('stories.json','utf8')); }catch(e)
 function saveFile(){ try{ fs.writeFileSync('stories.json', JSON.stringify(fileStories,null,2)); }catch(e){} }
 
 app.get('/api/stories', async (req,res)=>{
- try{
-  if(useDB){ const [rows]=await pool.query('SELECT * FROM stories ORDER BY createdAt DESC'); return res.json(rows); }
-  res.json(fileStories);
- }catch(e){ res.json(fileStories); }
+  try{
+    const [rows] = await pool.query('SELECT * FROM stories');
+    res.json(rows);
+  }catch(e){
+    console.log('GET error', e.message);
+    res.json([]);
+  }
 });
 
 app.get('/api/stories/:id', async (req,res)=>{
@@ -71,14 +74,14 @@ app.get('/api/stories/:id', async (req,res)=>{
 });
 
 app.post('/api/stories', async (req,res)=>{
- if(req.headers['x-admin-key']!=='khamkor123') return res.status(403).json({error:'Wrong key'});
+ if(req.headers['x-admin-key']!=='k1000') return res.status(403).json({error:'Wrong key'});
  const id=Date.now().toString();
- const story={id,title:req.body.title,content:req.body.content,image:req.body.image||'',views:0,likes:0,createdAt:new Date().toISOString()};
- try{
-  if(useDB){ await pool.query('INSERT INTO stories (id,title,content,image) VALUES (?,?,?,?)',[id,story.title,story.content,story.image]); }
-  else { fileStories.unshift(story); saveFile(); }
-  res.json(story);
- }catch(e){ res.status(500).json({error:e.message}); }
+ const story={id,title:req.body.title,content:req.body.content,image:req.body.image||'',views:0,likes:0,created_at:new Date().toISOString()};
+  try{
+    await pool.query('INSERT INTO stories (id,title,content,image,created_at) VALUES (?,?,?,?,?)', [id, req.body.title, req.body.content, req.body.image || '', story.created_at]);
+    console.log("✅ SAVED TO MYSQL:", id);
+    res.json(story);
+  }catch(e){ console.error("DB ERROR:", e.message); res.status(500).json({error:e.message}); }
 });
 
 app.post('/api/stories/:id/view', async (req,res)=>{
@@ -95,7 +98,7 @@ app.post('/api/stories/:id/like', async (req,res)=>{
 });
 
 app.get('/api/stories/:id/comments', async (req,res)=>{
- try{ if(useDB){ const [rows]=await pool.query('SELECT * FROM comments WHERE story_id=? ORDER BY at DESC',[req.params.id]); return res.json(rows); } }catch(e){}
+ try{ if(useDB){ const [rows]=await pool.query('SELECT * FROM comments WHERE story_id=? ORDER BY created_at DESC',[req.params.id]); return res.json(rows); } }catch(e){}
  res.json([]);
 });
 
@@ -103,8 +106,8 @@ app.post('/api/stories/:id/comments', async (req,res)=>{
  try{
   if(useDB){
    const id=Date.now().toString();
-   await pool.query('INSERT INTO comments (id,story_id,name,text) VALUES (?,?,?,?)',[id,req.params.id,req.body.name||'Anonymous',req.body.text]);
-   const [rows]=await pool.query('SELECT * FROM comments WHERE story_id=? ORDER BY at DESC',[req.params.id]);
+   await pool.query('INSERT INTO comments (id,story_id,name,text,created_at) VALUES (?,?,?,?,?)',[id,req.params.id,req.body.name||'Anonymous',req.body.text, new Date().toISOString()]);
+   const [rows]=await pool.query('SELECT * FROM comments WHERE story_id=? ORDER BY created_at DESC',[req.params.id]);
    return res.json(rows);
   }
   res.json([{name:req.body.name,text:req.body.text}]);
@@ -112,7 +115,7 @@ app.post('/api/stories/:id/comments', async (req,res)=>{
 });
 
 app.delete('/api/stories/:id', async (req,res)=>{
- if(req.headers['x-admin-key']!=='khamkor123') return res.status(403).json({error:'Wrong key'});
+ if(req.headers['x-admin-key']!=='k1000') return res.status(403).json({error:'Wrong key'});
  try{ if(useDB) await pool.query('DELETE FROM stories WHERE id=?',[req.params.id]); else { fileStories=fileStories.filter(x=>x.id!=req.params.id); saveFile(); } }catch(e){}
  res.json({ok:true});
 });
