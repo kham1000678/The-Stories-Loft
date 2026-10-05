@@ -55,15 +55,7 @@ let fileStories = [];
 try{ fileStories = JSON.parse(fs.readFileSync('stories.json','utf8')); }catch(e){ fileStories=[]; }
 function saveFile(){ try{ fs.writeFileSync('stories.json', JSON.stringify(fileStories,null,2)); }catch(e){} }
 
-app.get('/api/stories', async (req,res)=>{
-  try{
-    const [rows] = await pool.query('SELECT * FROM stories');
-    res.json(rows);
-  }catch(e){
-    console.log('GET error', e.message);
-    res.json([]);
-  }
-});
+
 
 app.get('/api/stories/:id', async (req,res)=>{
  try{
@@ -115,9 +107,16 @@ app.post('/api/stories/:id/comments', async (req,res)=>{
 });
 
 app.delete('/api/stories/:id', async (req,res)=>{
- if(req.headers['x-admin-key']!=='k1000') return res.status(403).json({error:'Wrong key'});
- try{ if(useDB) await pool.query('DELETE FROM stories WHERE id=?',[req.params.id]); else { fileStories=fileStories.filter(x=>x.id!=req.params.id); saveFile(); } }catch(e){}
- res.json({ok:true});
+  if(req.headers['x-admin-key']!=='k1000') return res.status(403).json({error:'Wrong key'});
+  try{
+    await pool.query('DELETE FROM stories WHERE id=?', [req.params.id]);
+    await pool.query('DELETE FROM comments WHERE story_id=?', [req.params.id]);
+    console.log("🗑️ DELETED:", req.params.id);
+    res.json({success:true});
+  }catch(e){
+    console.error("DELETE ERROR:", e.message);
+    res.status(500).json({error:e.message});
+  }
 });
 
 app.listen(PORT,()=>console.log('Server running on '+PORT));
